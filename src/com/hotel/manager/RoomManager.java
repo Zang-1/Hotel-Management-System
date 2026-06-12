@@ -1,0 +1,88 @@
+package com.hotel.manager;
+
+import com.hotel.dao.RoomDAO;
+import com.hotel.model.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * RoomManager — Business logic for Room management.
+ * Loads data on startup, saves on every modification.
+ */
+public class RoomManager {
+    private List<Room> rooms;
+    private final RoomDAO roomDAO;
+
+    public RoomManager() {
+        this.roomDAO = new RoomDAO();
+        this.rooms = roomDAO.loadAllRooms();
+        if (this.rooms.isEmpty()) seedDefaultRooms();
+    }
+
+    private void seedDefaultRooms() {
+        rooms.add(new StandardRoom("101", 50.0, true, 1));
+        rooms.add(new StandardRoom("102", 50.0, true, 1));
+        rooms.add(new StandardRoom("103", 60.0, true, 1));
+        rooms.add(new DeluxeRoom("201", 80.0, true, 2));
+        rooms.add(new DeluxeRoom("202", 80.0, true, 2));
+        rooms.add(new DeluxeRoom("203", 90.0, false, 2));
+        rooms.add(new SuiteRoom("301", 120.0, true, 3));
+        rooms.add(new SuiteRoom("302", 150.0, false, 3));
+        save();
+    }
+
+    public boolean addRoom(Room room) {
+        if (findById(room.getRoomId()) != null) return false;
+        rooms.add(room);
+        return save();
+    }
+
+    public boolean updateRoom(Room updated) {
+        for (int i = 0; i < rooms.size(); i++) {
+            if (rooms.get(i).getRoomId().equals(updated.getRoomId())) {
+                rooms.set(i, updated);
+                return save();
+            }
+        }
+        return false;
+    }
+
+    public boolean deleteRoom(String roomId) {
+        boolean removed = rooms.removeIf(r -> r.getRoomId().equals(roomId));
+        if (removed) save();
+        return removed;
+    }
+
+    public Room findById(String roomId) {
+        return rooms.stream()
+            .filter(r -> r.getRoomId().equalsIgnoreCase(roomId))
+            .findFirst().orElse(null);
+    }
+
+    public List<Room> searchRooms(String keyword) {
+        if (keyword == null || keyword.isBlank()) return new ArrayList<>(rooms);
+        String kw = keyword.toLowerCase();
+        return rooms.stream()
+            .filter(r -> r.getRoomId().toLowerCase().contains(kw)
+                      || r.getRoomType().toLowerCase().contains(kw))
+            .collect(Collectors.toList());
+    }
+
+    public List<Room> getAvailableRooms() {
+        return rooms.stream().filter(Room::isAvailable).collect(Collectors.toList());
+    }
+
+    public List<Room> getAllRooms() { return new ArrayList<>(rooms); }
+
+    public void setRoomAvailability(String roomId, boolean available) {
+        Room r = findById(roomId);
+        if (r != null) { r.setAvailable(available); save(); }
+    }
+
+    private boolean save() { return roomDAO.saveAllRooms(rooms); }
+
+    // Statistics
+    public long countAvailable() { return rooms.stream().filter(Room::isAvailable).count(); }
+    public long countOccupied()  { return rooms.stream().filter(r -> !r.isAvailable()).count(); }
+}
