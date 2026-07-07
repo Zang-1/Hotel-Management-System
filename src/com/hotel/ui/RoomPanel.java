@@ -2,31 +2,25 @@ package com.hotel.ui;
 
 import com.hotel.manager.*;
 import com.hotel.model.*;
+import com.hotel.exception.DuplicateDataException;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 
-/**
- * RoomPanel — Full CRUD management for Rooms.
- * Extends BasePanel (Inheritance + Polymorphism).
- */
 public class RoomPanel extends BasePanel {
 
     private DefaultTableModel tableModel;
     private JTable table;
-    private List<Room> currentRooms;
-
+    
     // Form fields
-    private JTextField txtRoomId, txtBasePrice, txtFloor;
+    private JTextField txtRoomId;
     private JComboBox<String> cbRoomType;
-    private JCheckBox chkAvailable;
+    private JComboBox<String> cbAvailable;
     private JTextField searchField;
 
     // Action buttons
-    private JButton btnAdd, btnEdit, btnDelete, btnClear, btnSearch, btnClearSearch;
-
-    private Room selectedRoom = null;
+    private JButton btnAdd, btnClear;
 
     public RoomPanel(RoomManager rm, GuestManager gm, ReservationManager resM, StaffManager sm) {
         super(rm, gm, resM, sm);
@@ -35,237 +29,319 @@ public class RoomPanel extends BasePanel {
 
     private void buildUI() {
         setLayout(new BorderLayout(0, 0));
-        add(buildHeader("Room Management", "R"), BorderLayout.NORTH);
+        
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        
+        JLabel titleLbl = new JLabel("Quản lý Phòng");
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLbl.setForeground(Color.WHITE);
+        
+        JLabel subLbl = new JLabel("Thêm, sửa, xóa và tìm kiếm phòng khách sạn");
+        subLbl.setFont(UIConstants.FONT_BODY);
+        subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        
+        JPanel titleGroup = new JPanel();
+        titleGroup.setLayout(new BoxLayout(titleGroup, BoxLayout.Y_AXIS));
+        titleGroup.setOpaque(false);
+        titleGroup.add(titleLbl);
+        titleGroup.add(Box.createVerticalStrut(5));
+        titleGroup.add(subLbl);
+        
+        header.add(titleGroup, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
         // ── CENTER: Table + Form ────────────────────────────────────
-        JPanel contentPanel = new JPanel(new BorderLayout());
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 0));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
 
         // LEFT: Search bar + Table
-        JPanel leftPanel = new JPanel(new BorderLayout(0, 8));
-        leftPanel.setBackground(UIConstants.COLOR_BG_PANEL);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 8));
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 16));
+        leftPanel.setBackground(UIConstants.COLOR_CARD);
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         // Search bar
-        searchField = UIHelper.createTextField("");
-        JButton searchBtn = UIHelper.createPrimaryButton("Search");
-        JButton clearSearchBtn = UIHelper.createSecondaryButton("Clear");
-        searchBtn.addActionListener(e -> performSearch());
-        clearSearchBtn.addActionListener(e -> { searchField.setText(""); refreshTable(); });
-        searchField.addActionListener(e -> performSearch());
+        searchField = UIHelper.createTextField("Tìm kiếm mã phòng, loại phòng...");
+        searchField.setPreferredSize(new Dimension(0, 40));
+        searchField.setBackground(UIConstants.COLOR_BG_DARK);
+        searchField.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        searchField.addActionListener(e -> refreshTable()); // Simple enter search
+        
+        JPanel searchBox = new JPanel(new BorderLayout());
+        searchBox.setOpaque(false);
+        searchBox.add(searchField, BorderLayout.CENTER);
 
-        leftPanel.add(buildSearchBar(searchField, searchBtn, clearSearchBtn), BorderLayout.NORTH);
+        leftPanel.add(searchBox, BorderLayout.NORTH);
 
         // Table
-        String[] cols = {"Room ID", "Type", "Floor", "Price/Night", "Actual Price", "Available"};
+        String[] cols = {"MÃ PHÒNG", "LOẠI PHÒNG", "GIÁ/ĐÊM", "TRẠNG THÁI", "THAO TÁC"};
         tableModel = new DefaultTableModel(cols, 0) {
-            public boolean isCellEditable(int r, int c) { return false; }
+            public boolean isCellEditable(int r, int c) { return c == 4; } // Only Thao tác is editable for button clicks
         };
         table = new JTable(tableModel);
         UIHelper.styleTable(table);
-        table.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) populateFormFromSelection();
+        table.setRowHeight(80);
+        
+        // Column 0: Mã Phòng (Gold)
+        table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isSelected, boolean hasFocus, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, isSelected, hasFocus, r, c);
+                lbl.setHorizontalAlignment(SwingConstants.LEFT);
+                lbl.setForeground(UIConstants.COLOR_GOLD);
+                lbl.setFont(UIConstants.FONT_BODY_BOLD);
+                return lbl;
+            }
         });
+        
+        // Column 2: Giá (Green)
+        table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isSelected, boolean hasFocus, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, isSelected, hasFocus, r, c);
+                lbl.setHorizontalAlignment(SwingConstants.LEFT);
+                lbl.setForeground(UIConstants.COLOR_SUCCESS);
+                return lbl;
+            }
+        });
+        
+        // Status renderer
+        table.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isSelected, boolean hasFocus, int r, int c) {
+                JPanel p = new JPanel(new GridBagLayout());
+                p.setOpaque(false);
+                
+                JLabel lbl = new JLabel((String)v, SwingConstants.CENTER);
+                lbl.setFont(UIConstants.FONT_SMALL);
+                lbl.setOpaque(true);
+                lbl.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+                
+                if ("Trống".equals(v)) {
+                    lbl.setBackground(new Color(20, 60, 40));
+                    lbl.setForeground(UIConstants.COLOR_SUCCESS);
+                } else {
+                    lbl.setBackground(new Color(60, 30, 30));
+                    lbl.setForeground(UIConstants.COLOR_DANGER);
+                }
+                
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.anchor = GridBagConstraints.WEST;
+                gbc.weightx = 1.0;
+                gbc.insets = new java.awt.Insets(0, 10, 0, 0);
+                p.add(lbl, gbc);
+                
+                if (isSelected) {
+                    p.setBackground(t.getSelectionBackground());
+                    p.setOpaque(true);
+                }
+                return p;
+            }
+        });
+        
+        // Action renderer
+        TableActionCell actionCell = new TableActionCell(row -> {
+            JPanel inner = new JPanel();
+            inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
+            inner.setOpaque(false);
+            
+            JButton bEdit = UIHelper.createActionButton("Sửa", UIConstants.COLOR_ACCENT);
+            JButton bDel = UIHelper.createActionButton("Xóa", UIConstants.COLOR_DANGER);
+            
+            bEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
+            bDel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            inner.add(bEdit);
+            inner.add(Box.createVerticalStrut(8));
+            inner.add(bDel);
+            
+            JPanel panel = new JPanel(new GridBagLayout());
+            panel.setOpaque(false);
+            panel.add(inner);
+            
+            bEdit.addActionListener(e -> {
+                String id = (String) table.getValueAt(row, 0);
+                editRoomMode(id);
+            });
+            bDel.addActionListener(e -> {
+                String id = (String) table.getValueAt(row, 0);
+                if (UIHelper.showConfirm(this, "Xóa phòng " + id + "?")) {
+                    roomManager.deleteRoom(id);
+                    refreshTable();
+                }
+            });
+            
+            
+            return panel;
+        });
+        table.getColumnModel().getColumn(4).setCellRenderer(actionCell);
+        table.getColumnModel().getColumn(4).setCellEditor(actionCell);
 
         leftPanel.add(UIHelper.createScrollPane(table), BorderLayout.CENTER);
         contentPanel.add(leftPanel, BorderLayout.CENTER);
 
-        // RIGHT: Form panel in scroll pane
-        JScrollPane formScroll = new JScrollPane(buildFormPanel());
-        formScroll.setBorder(null);
-        formScroll.getVerticalScrollBar().setUnitIncrement(16);
-        formScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        formScroll.setPreferredSize(new Dimension(400, 0));
-        
-        contentPanel.add(formScroll, BorderLayout.EAST);
+        // RIGHT: Form
+        JPanel formPanel = buildFormPanel();
+        formPanel.setPreferredSize(new Dimension(320, 0));
+        contentPanel.add(formPanel, BorderLayout.EAST);
 
         add(contentPanel, BorderLayout.CENTER);
         refreshTable();
     }
 
     private JPanel buildFormPanel() {
-        JPanel panel = buildFormCard("Room Details");
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(UIConstants.COLOR_CARD);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Form grid
-        JPanel form = new JPanel(new GridBagLayout());
+        JLabel titleLbl = new JLabel("THÊM PHÒNG MỚI");
+        titleLbl.setFont(UIConstants.FONT_SUBTITLE);
+        titleLbl.setForeground(Color.WHITE);
+        titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        panel.add(titleLbl, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridLayout(0, 1, 0, 10));
         form.setOpaque(false);
-        form.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 4, 6, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
+        txtRoomId = UIHelper.createTextField("");
+        txtRoomId.setBackground(UIConstants.COLOR_BG_DARK);
+        
+        cbRoomType = UIHelper.createComboBox(new String[]{"Standard — $50/đêm", "Deluxe — $90/đêm", "Suite — $150/đêm"});
+        cbRoomType.setBackground(UIConstants.COLOR_BG_DARK);
+        
+        cbAvailable = UIHelper.createComboBox(new String[]{"Trống", "Có khách"});
+        cbAvailable.setBackground(UIConstants.COLOR_BG_DARK);
 
-        txtRoomId   = UIHelper.createTextField("");
-        cbRoomType  = UIHelper.createComboBox(new String[]{"Standard", "Deluxe", "Suite"});
-        txtBasePrice= UIHelper.createTextField("");
-        txtFloor    = UIHelper.createTextField("");
-        chkAvailable= new JCheckBox("Available");
-        chkAvailable.setOpaque(false);
-        chkAvailable.setForeground(UIConstants.COLOR_TEXT_PRIMARY);
-        chkAvailable.setFont(UIConstants.FONT_BODY);
-        chkAvailable.setSelected(true);
-
-        addFormRow(form, gbc, 0, "Room ID *",       txtRoomId);
-        addFormRow(form, gbc, 1, "Room Type *",     cbRoomType);
-        addFormRow(form, gbc, 2, "Base Price ($) *", txtBasePrice);
-        addFormRow(form, gbc, 3, "Floor",           txtFloor);
-        addFormRow(form, gbc, 4, "Status",          chkAvailable);
-
-        // Pricing note label
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
-        JLabel noteLabel = new JLabel("<html><i>Actual price: Standard=base, Deluxe=base×1.5, Suite=base×2.2</i></html>");
-        noteLabel.setFont(UIConstants.FONT_SMALL);
-        noteLabel.setForeground(UIConstants.COLOR_TEXT_MUTED);
-        form.add(noteLabel, gbc);
-        gbc.gridwidth = 1;
+        addVGroup(form, "Mã phòng *", txtRoomId);
+        addVGroup(form, "Loại phòng", cbRoomType);
+        addVGroup(form, "Trạng thái", cbAvailable);
 
         panel.add(form, BorderLayout.CENTER);
 
         // Buttons
-        JPanel btnPanel = new JPanel(new GridLayout(0, 1, 0, 8));
+        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         btnPanel.setOpaque(false);
+        btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        btnAdd    = UIHelper.createSuccessButton("+ Add Room");
-        btnEdit   = UIHelper.createWarningButton("\u270E Update"); // Pencil
-        btnDelete = UIHelper.createDangerButton("\u00D7 Delete"); // Multiply
-        btnClear  = UIHelper.createSecondaryButton("\u21BA Clear Form"); // Circular arrow
+        btnAdd = new JButton("Thêm phòng");
+        btnAdd.setBackground(UIConstants.COLOR_GOLD);
+        btnAdd.setForeground(Color.BLACK);
+        btnAdd.setFont(UIConstants.FONT_BODY_BOLD);
+        btnAdd.setFocusable(false);
+        
+        btnClear = new JButton("Xóa form");
+        btnClear.setBackground(UIConstants.COLOR_BG_DARK);
+        btnClear.setForeground(Color.WHITE);
+        btnClear.setFont(UIConstants.FONT_BODY);
+        btnClear.setFocusable(false);
 
         btnAdd.addActionListener(e -> addRoom());
-        btnEdit.addActionListener(e -> editRoom());
-        btnDelete.addActionListener(e -> deleteRoom());
         btnClear.addActionListener(e -> clearForm());
 
-        btnEdit.setEnabled(false);
-        btnDelete.setEnabled(false);
-
         btnPanel.add(btnAdd);
-        btnPanel.add(btnEdit);
-        btnPanel.add(btnDelete);
-        btnPanel.add(UIHelper.createSeparator());
         btnPanel.add(btnClear);
         panel.add(btnPanel, BorderLayout.SOUTH);
 
         return panel;
     }
+    
+    private void addVGroup(JPanel parent, String label, JComponent comp) {
+        JPanel p = new JPanel(new BorderLayout(0, 5));
+        p.setOpaque(false);
+        JLabel lbl = new JLabel(label);
+        lbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        lbl.setFont(UIConstants.FONT_SMALL);
+        p.add(lbl, BorderLayout.NORTH);
+        comp.setPreferredSize(new Dimension(0, 40));
+        p.add(comp, BorderLayout.CENTER);
+        parent.add(p);
+    }
 
     private void addRoom() {
-        // Input validation
-        String id    = txtRoomId.getText().trim();
-        String type  = (String) cbRoomType.getSelectedItem();
-        String price = txtBasePrice.getText().trim();
-        String floor = txtFloor.getText().trim();
-
-        if (id.isEmpty()) { UIHelper.showError(this, "Room ID is required!"); return; }
-        if (price.isEmpty()) { UIHelper.showError(this, "Base price is required!"); return; }
-
-        double basePrice;
-        int floorNum = 1;
-        try { basePrice = Double.parseDouble(price); if (basePrice <= 0) throw new NumberFormatException(); }
-        catch (NumberFormatException ex) { UIHelper.showError(this, "Price must be a positive number!"); return; }
-        try { if (!floor.isEmpty()) floorNum = Integer.parseInt(floor); }
-        catch (NumberFormatException ex) { UIHelper.showError(this, "Floor must be a whole number!"); return; }
-
-        Room room = createRoomByType(id, type, basePrice, chkAvailable.isSelected(), floorNum);
-        if (!roomManager.addRoom(room)) {
-            UIHelper.showError(this, "Room ID '" + id + "' already exists!");
+        String id = txtRoomId.getText().trim();
+        if (id.isEmpty()) {
+            UIHelper.showError(this, "Vui lòng nhập mã phòng!");
             return;
         }
-        refreshTable();
-        clearForm();
-        UIHelper.showInfo(this, "Room added successfully!");
-    }
-
-    private void editRoom() {
-        if (selectedRoom == null) return;
-        String type  = (String) cbRoomType.getSelectedItem();
-        String price = txtBasePrice.getText().trim();
-        String floor = txtFloor.getText().trim();
-
-        if (price.isEmpty()) { UIHelper.showError(this, "Base price is required!"); return; }
-        double basePrice;
-        int floorNum = selectedRoom.getFloor();
-        try { basePrice = Double.parseDouble(price); if (basePrice <= 0) throw new NumberFormatException(); }
-        catch (NumberFormatException ex) { UIHelper.showError(this, "Price must be a positive number!"); return; }
-        try { if (!floor.isEmpty()) floorNum = Integer.parseInt(floor); }
-        catch (NumberFormatException ex) { UIHelper.showError(this, "Floor must be a whole number!"); return; }
-
-        Room updated = createRoomByType(selectedRoom.getRoomId(), type, basePrice,
-                                        chkAvailable.isSelected(), floorNum);
-        roomManager.updateRoom(updated);
-        refreshTable();
-        clearForm();
-        UIHelper.showInfo(this, "Room updated successfully!");
-    }
-
-    private Room createRoomByType(String id, String type, double base, boolean avail, int floor) {
-        switch (type) {
-            case "Deluxe": return new DeluxeRoom(id, base, avail, floor);
-            case "Suite":  return new SuiteRoom(id, base, avail, floor);
-            default:       return new StandardRoom(id, base, avail, floor);
+        // Xóa lệnh kiểm tra thủ công để nhường cho DuplicateDataException
+        
+        int typeIdx = cbRoomType.getSelectedIndex();
+        Room r = null;
+        boolean isAvail = cbAvailable.getSelectedIndex() == 0;
+        
+        if (typeIdx == 0) r = new StandardRoom(id, 50, isAvail, 1);
+        else if (typeIdx == 1) r = new DeluxeRoom(id, 90, isAvail, 1);
+        else r = new SuiteRoom(id, 150, isAvail, 1);
+        
+        // Theo Bài giảng Chương 3: Sử dụng khối try-catch để bắt ngoại lệ (Checked Exception)
+        try {
+            roomManager.addRoom(r);
+            UIHelper.showInfo(this, "Đã thêm phòng!");
+            refreshTable();
+            clearForm();
+        } catch (DuplicateDataException e) {
+            UIHelper.showError(this, e.getMessage());
         }
     }
-
-    private void deleteRoom() {
-        if (selectedRoom == null) return;
-        if (!UIHelper.showConfirm(this, "Delete room " + selectedRoom.getRoomId() + "?")) return;
-        roomManager.deleteRoom(selectedRoom.getRoomId());
-        refreshTable();
-        clearForm();
-    }
-
-    private void performSearch() {
-        String kw = searchField.getText().trim();
-        currentRooms = roomManager.searchRooms(kw);
-        populateTable(currentRooms);
-    }
-
-    private void populateFormFromSelection() {
-        int row = table.getSelectedRow();
-        if (row < 0 || currentRooms == null || row >= currentRooms.size()) return;
-        selectedRoom = currentRooms.get(row);
-        txtRoomId.setText(selectedRoom.getRoomId());
-        txtRoomId.setEditable(false);
-        cbRoomType.setSelectedItem(selectedRoom.getRoomType());
-        txtBasePrice.setText(String.valueOf(selectedRoom.getBasePricePerNight()));
-        txtFloor.setText(String.valueOf(selectedRoom.getFloor()));
-        chkAvailable.setSelected(selectedRoom.isAvailable());
-        btnEdit.setEnabled(true);
-        btnDelete.setEnabled(true);
-        btnAdd.setEnabled(false);
-    }
-
-    /** Polymorphism: overrides BasePanel.refreshTable() */
-    @Override
-    public void refreshTable() {
-        currentRooms = roomManager.getAllRooms();
-        populateTable(currentRooms);
-    }
-
-    private void populateTable(List<Room> rooms) {
-        tableModel.setRowCount(0);
-        for (Room r : rooms) {
-            tableModel.addRow(new Object[]{
-                r.getRoomId(),
-                r.getRoomType(),
-                r.getFloor(),
-                String.format("$%.0f", r.getBasePricePerNight()),
-                String.format("$%.0f", r.calculatePricePerNight()),
-                r.isAvailable() ? "[ Y ] Available" : "[ N ] Occupied"
+    
+    private void editRoomMode(String id) {
+        Room r = roomManager.findById(id);
+        if (r != null) {
+            txtRoomId.setText(r.getRoomId());
+            txtRoomId.setEnabled(false);
+            if (r instanceof StandardRoom) cbRoomType.setSelectedIndex(0);
+            else if (r instanceof DeluxeRoom) cbRoomType.setSelectedIndex(1);
+            else cbRoomType.setSelectedIndex(2);
+            
+            cbAvailable.setSelectedIndex(r.isAvailable() ? 0 : 1);
+            
+            // Switch button to Edit
+            btnAdd.setText("Lưu sửa");
+            for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
+                btnAdd.removeActionListener(al);
+            }
+            btnAdd.addActionListener(e -> {
+                boolean isAvail = cbAvailable.getSelectedIndex() == 0;
+                r.setAvailable(isAvail);
+                // Can't easily change type without re-creating, so let's just update status
+                roomManager.updateRoom(r);
+                UIHelper.showInfo(this, "Cập nhật thành công!");
+                refreshTable();
+                clearForm();
             });
         }
     }
 
-    /** Polymorphism: overrides BasePanel.clearForm() */
+    @Override
+    public void refreshTable() {
+        tableModel.setRowCount(0);
+        String q = searchField.getText().trim().toLowerCase();
+        for (Room r : roomManager.getAllRooms()) {
+            if (q.isEmpty() || r.getRoomId().toLowerCase().contains(q) || r.getRoomType().toLowerCase().contains(q)) {
+                tableModel.addRow(new Object[]{
+                    r.getRoomId(),
+                    r.getRoomType(),
+                    "$" + (int)r.calculatePricePerNight(),
+                    r.isAvailable() ? "Trống" : "Có khách",
+                    "" // Button column
+                });
+            }
+        }
+    }
+
     @Override
     public void clearForm() {
-        selectedRoom = null;
-        txtRoomId.setText(""); txtRoomId.setEditable(true);
-        txtBasePrice.setText(""); txtFloor.setText("");
+        txtRoomId.setText("");
+        txtRoomId.setEnabled(true);
         cbRoomType.setSelectedIndex(0);
-        chkAvailable.setSelected(true);
-        btnEdit.setEnabled(false);
-        btnDelete.setEnabled(false);
-        btnAdd.setEnabled(true);
-        table.clearSelection();
+        cbAvailable.setSelectedIndex(0);
+        
+        btnAdd.setText("Thêm phòng");
+        for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
+            btnAdd.removeActionListener(al);
+        }
+        btnAdd.addActionListener(e -> addRoom());
     }
 }

@@ -3,22 +3,26 @@ package com.hotel.ui;
 import com.hotel.manager.*;
 import com.hotel.model.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
-/**
- * DashboardPanel — Redesigned list-style dashboard inspired by PHPJabbers layout.
- */
 public class DashboardPanel extends BasePanel {
 
-    private JLabel statRoomsBooked, statPendingRooms, statAvailableRooms;
-    private JLabel statStandard, statDeluxe, statSuite;
-    private JLabel statGuestsTonight, statAdults, statChildren;
+    private JLabel lblTotalRooms, lblTotalRoomsSub;
+    private JLabel lblActiveGuests, lblActiveGuestsSub;
+    private JLabel lblTotalGuests;
+    private JLabel lblRevenue;
     
-    private JTable recentTable;
     private DefaultTableModel recentModel;
+    private JTable recentTable;
+    private JPanel roomGridPanel;
 
     public DashboardPanel(RoomManager rm, GuestManager gm, ReservationManager resM, StaffManager sm) {
         super(rm, gm, resM, sm);
@@ -27,179 +31,289 @@ public class DashboardPanel extends BasePanel {
 
     private void buildUI() {
         setLayout(new BorderLayout(0, 0));
-        add(buildHeader("Dashboard", "D"), BorderLayout.NORTH);
+        setOpaque(false);
+        setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel contentPanel = new JPanel(new BorderLayout(20, 0));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        contentPanel.setBackground(UIConstants.COLOR_BG_DARK);
-
-        // --- LEFT COLUMN (Stats Lists) ---
-        JPanel leftCol = new JPanel();
-        leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
-        leftCol.setBackground(UIConstants.COLOR_BG_PANEL);
-        leftCol.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        leftCol.setPreferredSize(new Dimension(380, 0));
-
-        // Init labels
-        statRoomsBooked = new JLabel("0");
-        statPendingRooms = new JLabel("0");
-        statAvailableRooms = new JLabel("0");
+        // HEADER
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(0, 0, 20, 0));
         
-        statStandard = new JLabel("0");
-        statDeluxe = new JLabel("0");
-        statSuite = new JLabel("0");
+        JLabel titleLbl = new JLabel("Dashboard");
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLbl.setForeground(Color.WHITE);
         
-        statGuestsTonight = new JLabel("0");
-        statAdults = new JLabel("0");
-        statChildren = new JLabel("0");
-
-        // Section 1: Today
-        leftCol.add(createListItem("Rooms Booked Today", statRoomsBooked, false));
-        leftCol.add(createListItem("Pending Rooms Today", statPendingRooms, false));
-        leftCol.add(createListItem("Available Rooms Today", statAvailableRooms, false));
-        leftCol.add(Box.createVerticalStrut(30));
-
-        // Section 2: Rooms By Type
-        JLabel lblRoomsTitle = new JLabel("AVAILABLE ROOMS BY TYPE");
-        lblRoomsTitle.setFont(UIConstants.FONT_SUBTITLE);
-        lblRoomsTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
-        leftCol.add(lblRoomsTitle);
-        leftCol.add(Box.createVerticalStrut(10));
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM, yyyy", new Locale("vi", "VN")));
+        // Capitalize first letter
+        if (dateStr.length() > 0) {
+            dateStr = dateStr.substring(0, 1).toUpperCase() + dateStr.substring(1);
+        }
         
-        leftCol.add(createListItem("Standard Room", statStandard, false));
-        leftCol.add(createListItem("Deluxe Room", statDeluxe, false));
-        leftCol.add(createListItem("Suite", statSuite, false));
-        leftCol.add(Box.createVerticalStrut(30));
-
-        // Section 3: Guests
-        JLabel lblGuestsTitle = new JLabel("GUESTS");
-        lblGuestsTitle.setFont(UIConstants.FONT_SUBTITLE);
-        lblGuestsTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
-        leftCol.add(lblGuestsTitle);
-        leftCol.add(Box.createVerticalStrut(10));
-
-        leftCol.add(createListItem("Staying tonight", statGuestsTonight, false));
-        leftCol.add(createListItem("Adults", statAdults, true));
-        leftCol.add(createListItem("Children", statChildren, true));
-
-        JScrollPane leftScroll = new JScrollPane(leftCol);
-        leftScroll.setBorder(null);
-
-        // --- RIGHT COLUMN (Recent/Arrivals Table) ---
-        JPanel rightCol = new JPanel(new BorderLayout(0, 10));
-        rightCol.setBackground(UIConstants.COLOR_BG_PANEL);
-        rightCol.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-
-        // We use tabs to mimic "Arrivals | Departures" but with our own data
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(UIConstants.FONT_BODY_BOLD);
+        JLabel subLbl = new JLabel("Tổng quan hệ thống — " + dateStr);
+        subLbl.setFont(UIConstants.FONT_BODY);
+        subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
-        String[] cols = {"Res. ID", "Guest", "Room", "Check-In", "Check-Out", "Status"};
+        JPanel titleGroup = new JPanel();
+        titleGroup.setLayout(new BoxLayout(titleGroup, BoxLayout.Y_AXIS));
+        titleGroup.setOpaque(false);
+        titleGroup.add(titleLbl);
+        titleGroup.add(Box.createVerticalStrut(5));
+        titleGroup.add(subLbl);
+        
+        header.add(titleGroup, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+
+        // --- ROW 1: STATS CARDS ---
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+        statsPanel.setOpaque(false);
+        statsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
+        statsPanel.setPreferredSize(new Dimension(0, 140));
+
+        // TỔNG PHÒNG
+        lblTotalRooms = new JLabel("0");
+        lblTotalRoomsSub = new JLabel("0 trống · 0 có khách");
+        statsPanel.add(buildStatCard("TỔNG PHÒNG", lblTotalRooms, lblTotalRoomsSub, new Color(100, 150, 255)));
+
+        // KHÁCH ĐANG LƯU TRÚ
+        lblActiveGuests = new JLabel("0");
+        lblActiveGuestsSub = new JLabel("0 chờ nhận phòng");
+        statsPanel.add(buildStatCard("KHÁCH ĐANG LƯU TRÚ", lblActiveGuests, lblActiveGuestsSub, UIConstants.COLOR_SUCCESS));
+
+        // TỔNG KHÁCH HÀNG
+        lblTotalGuests = new JLabel("0");
+        JLabel lblTotalGuestsSub = new JLabel("Trong hệ thống");
+        statsPanel.add(buildStatCard("TỔNG KHÁCH HÀNG", lblTotalGuests, lblTotalGuestsSub, UIConstants.COLOR_GOLD));
+
+        // DOANH THU
+        lblRevenue = new JLabel("$0");
+        JLabel lblRevSub = new JLabel("Tổng tích lũy");
+        statsPanel.add(buildStatCard("DOANH THU", lblRevenue, lblRevSub, new Color(191, 90, 242)));
+
+        content.add(statsPanel);
+        content.add(Box.createVerticalStrut(20));
+
+        // --- ROW 2: TABLES & ROOM GRID ---
+        JPanel bottomRow = new JPanel(new GridLayout(1, 2, 20, 0));
+        bottomRow.setOpaque(false);
+        
+        // LEFT: Recent Reservations
+        JPanel recentCard = createCardPanel();
+        recentCard.setLayout(new BorderLayout(0, 15));
+        JLabel recentTitle = new JLabel("PHIẾU ĐẶT PHÒNG GẦN ĐÂY");
+        recentTitle.setFont(UIConstants.FONT_SMALL_BOLD);
+        recentTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        recentCard.add(recentTitle, BorderLayout.NORTH);
+        
+        String[] cols = {"Mã phiếu", "Phòng", "Check-in", "Trạng thái"};
         recentModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         recentTable = new JTable(recentModel);
         UIHelper.styleTable(recentTable);
+        recentTable.setRowHeight(45);
         
-        JPanel tableContainer = new JPanel(new BorderLayout());
-        tableContainer.add(UIHelper.createScrollPane(recentTable), BorderLayout.CENTER);
+        // Custom renderer for Status badge
+        recentTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isSelected, boolean hasFocus, int r, int c) {
+                JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+                p.setOpaque(false);
+                p.setBorder(new EmptyBorder(5, 0, 0, 0));
+                
+                JLabel lbl = new JLabel((String)v);
+                lbl.setFont(UIConstants.FONT_SMALL);
+                lbl.setOpaque(true);
+                lbl.setBorder(new EmptyBorder(4, 10, 4, 10));
+                
+                if ("Chờ nhận".equals(v)) {
+                    lbl.setBackground(new Color(60, 50, 20));
+                    lbl.setForeground(UIConstants.COLOR_GOLD);
+                } else if ("Đã nhận".equals(v)) {
+                    lbl.setBackground(new Color(20, 60, 40));
+                    lbl.setForeground(UIConstants.COLOR_SUCCESS);
+                } else if ("Đã trả".equals(v)) {
+                    lbl.setBackground(new Color(50, 50, 60));
+                    lbl.setForeground(new Color(150, 160, 180));
+                } else {
+                    lbl.setBackground(new Color(60, 30, 30));
+                    lbl.setForeground(UIConstants.COLOR_DANGER);
+                }
+                
+                p.add(lbl);
+                if (isSelected) {
+                    p.setBackground(t.getSelectionBackground());
+                    p.setOpaque(true);
+                }
+                return p;
+            }
+        });
         
-        tabbedPane.addTab("Recent Reservations", tableContainer);
-        rightCol.add(tabbedPane, BorderLayout.CENTER);
+        recentCard.add(UIHelper.createScrollPane(recentTable), BorderLayout.CENTER);
+        bottomRow.add(recentCard);
+        
+        // RIGHT: Room Status Grid
+        JPanel roomCard = createCardPanel();
+        roomCard.setLayout(new BorderLayout(0, 15));
+        JLabel roomTitle = new JLabel("TRẠNG THÁI PHÒNG");
+        roomTitle.setFont(UIConstants.FONT_SMALL_BOLD);
+        roomTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        roomCard.add(roomTitle, BorderLayout.NORTH);
+        
+        roomGridPanel = new JPanel();
+        roomGridPanel.setLayout(new BoxLayout(roomGridPanel, BoxLayout.Y_AXIS));
+        roomGridPanel.setOpaque(false);
+        
+        JScrollPane roomScroll = new JScrollPane(roomGridPanel);
+        roomScroll.setBorder(null);
+        roomScroll.setOpaque(false);
+        roomScroll.getViewport().setOpaque(false);
+        roomCard.add(roomScroll, BorderLayout.CENTER);
+        
+        bottomRow.add(roomCard);
 
-        contentPanel.add(leftScroll, BorderLayout.WEST);
-        contentPanel.add(rightCol, BorderLayout.CENTER);
+        content.add(bottomRow);
 
-        add(contentPanel, BorderLayout.CENTER);
+        add(content, BorderLayout.CENTER);
+        refreshTable();
+    }
+    
+    private JPanel createCardPanel() {
+        JPanel panel = new JPanel();
+        panel.setBackground(UIConstants.COLOR_CARD);
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        return panel;
     }
 
-    private JPanel createListItem(String text, JLabel valueLabel, boolean isIndented) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        
-        JLabel t = new JLabel(text);
-        t.setFont(UIConstants.FONT_BODY);
-        t.setForeground(UIConstants.COLOR_TEXT_PRIMARY);
-        if (isIndented) {
-            t.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-        }
-        
-        valueLabel.setFont(UIConstants.FONT_BODY);
-        valueLabel.setForeground(UIConstants.COLOR_SUCCESS); // Green numbers matching screenshot
-        
-        p.add(t, BorderLayout.WEST);
-        p.add(valueLabel, BorderLayout.EAST);
-        
-        p.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
-            BorderFactory.createEmptyBorder(10, 0, 10, 0)
+    private JPanel buildStatCard(String title, JLabel mainVal, JLabel subVal, Color topColor) {
+        JPanel card = createCardPanel();
+        card.setLayout(new BorderLayout());
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, topColor),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        return p;
+
+        JLabel titleLbl = new JLabel(title);
+        titleLbl.setFont(UIConstants.FONT_SMALL_BOLD);
+        titleLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        card.add(titleLbl, BorderLayout.NORTH);
+
+        mainVal.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        mainVal.setForeground(Color.WHITE);
+        card.add(mainVal, BorderLayout.CENTER);
+
+        subVal.setFont(UIConstants.FONT_SMALL);
+        subVal.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        card.add(subVal, BorderLayout.SOUTH);
+
+        return card;
     }
 
     @Override
     public void refreshTable() {
+        // Rooms
         List<Room> rooms = roomManager.getAllRooms();
-        List<Reservation> reservations = reservationManager.getAllReservations();
-        LocalDate today = LocalDate.now();
+        long avail = roomManager.countAvailable();
+        long occ = roomManager.countOccupied();
+        lblTotalRooms.setText(String.valueOf(rooms.size()));
+        lblTotalRoomsSub.setText(avail + " trống · " + occ + " có khách");
 
-        int bookedToday = 0;
-        int pendingToday = 0;
-        int guestsTonight = 0;
+        // Guests & Revenue
+        List<Reservation> resList = reservationManager.getAllReservations();
+        long checkedIn = resList.stream().filter(r -> r.getStatus() == Reservation.Status.CHECKED_IN).count();
+        long pending = resList.stream().filter(r -> r.getStatus() == Reservation.Status.PENDING).count();
+        
+        lblActiveGuests.setText(String.valueOf(checkedIn));
+        lblActiveGuestsSub.setText(pending + " chờ nhận phòng");
 
-        for (Reservation r : reservations) {
-            boolean overlapsToday = !r.getCheckInDate().isAfter(today) && !r.getCheckOutDate().isBefore(today);
-            
-            if (overlapsToday && r.getStatus() == Reservation.Status.CHECKED_IN) {
-                bookedToday++;
-                guestsTonight++; // Roughly 1 guest per room for this stat
-            }
-            if (r.getCheckInDate().equals(today) && r.getStatus() == Reservation.Status.CONFIRMED) {
-                pendingToday++;
-            }
-        }
+        lblTotalGuests.setText(String.valueOf(guestManager.getAllGuests().size()));
 
-        int std = 0, dlx = 0, ste = 0;
-        int available = 0;
-        for (Room r : rooms) {
-            if (r.isAvailable()) {
-                available++;
-                if (r.getRoomType().equalsIgnoreCase("Standard")) std++;
-                else if (r.getRoomType().equalsIgnoreCase("Deluxe")) dlx++;
-                else if (r.getRoomType().equalsIgnoreCase("Suite")) ste++;
-            }
-        }
+        double revenue = resList.stream()
+            .filter(r -> r.getStatus() != Reservation.Status.CANCELLED)
+            .mapToDouble(Reservation::getTotalAmount)
+            .sum();
+        lblRevenue.setText("$" + String.format("%,.0f", revenue));
 
-        statRoomsBooked.setText(String.valueOf(bookedToday));
-        statPendingRooms.setText(String.valueOf(pendingToday));
-        statAvailableRooms.setText(String.valueOf(available));
-
-        statStandard.setText(String.valueOf(std));
-        statDeluxe.setText(String.valueOf(dlx));
-        statSuite.setText(String.valueOf(ste));
-
-        statGuestsTonight.setText(String.valueOf(guestsTonight));
-        statAdults.setText(String.valueOf(guestsTonight)); // Simplified mapping
-        statChildren.setText("0"); // Not tracked in Guest model natively
-
-        // Refresh table
+        // Recent Reservations Table
         recentModel.setRowCount(0);
-        int start = Math.max(0, reservations.size() - 15);
-        for (int i = reservations.size() - 1; i >= start; i--) {
-            Reservation r = reservations.get(i);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        // Theo Bài giảng Chương 4: Sử dụng lớp tiện ích Collections.sort() và Collections.reverse()
+        List<Reservation> recent = new java.util.ArrayList<>(resList);
+        java.util.Collections.sort(recent, new java.util.Comparator<Reservation>() {
+            @Override
+            public int compare(Reservation a, Reservation b) {
+                return a.getCheckInDate().compareTo(b.getCheckInDate());
+            }
+        });
+        java.util.Collections.reverse(recent);
+        
+        // Chỉ lấy 5 phiếu đặt gần nhất
+        if (recent.size() > 5) recent = recent.subList(0, 5);
+            
+        for (Reservation r : recent) {
+            String st = "Đã hủy";
+            if (r.getStatus() == Reservation.Status.PENDING) st = "Chờ nhận";
+            else if (r.getStatus() == Reservation.Status.CHECKED_IN) st = "Đã nhận";
+            else if (r.getStatus() == Reservation.Status.CHECKED_OUT) st = "Đã trả";
+            
             recentModel.addRow(new Object[]{
-                r.getReservationId(), r.getGuest().getName(), r.getRoom().getRoomId(),
-                r.getCheckInDate(), r.getCheckOutDate(), r.getStatus().name()
+                r.getReservationId(),
+                r.getRoom().getRoomId(),
+                r.getCheckInDate().format(fmt),
+                st
             });
         }
+        
+        // Room Grid by Floor
+        roomGridPanel.removeAll();
+        
+        java.util.Map<Integer, List<Room>> floorMap = new java.util.TreeMap<>();
+        for (Room r : rooms) {
+            String numStr = r.getRoomId().replaceAll("[^0-9]", "");
+            int floor = 1;
+            if (!numStr.isEmpty()) floor = Integer.parseInt(numStr) / 100;
+            floorMap.computeIfAbsent(floor, k -> new java.util.ArrayList<>()).add(r);
+        }
+        
+        for (java.util.Map.Entry<Integer, List<Room>> entry : floorMap.entrySet()) {
+            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+            rowPanel.setOpaque(false);
+            
+            for (Room r : entry.getValue()) {
+                JPanel rb = new JPanel(new BorderLayout());
+                rb.setPreferredSize(new Dimension(100, 70));
+                
+                Color color = r.isAvailable() ? UIConstants.COLOR_SUCCESS : UIConstants.COLOR_DANGER;
+                
+                rb.setBackground(UIConstants.COLOR_BG_DARK);
+                rb.setBorder(BorderFactory.createLineBorder(color.darker(), 1, true));
+                
+                JLabel rId = new JLabel(r.getRoomId().replaceAll("[^0-9]", ""), SwingConstants.CENTER);
+                rId.setFont(UIConstants.FONT_BODY_BOLD);
+                rId.setForeground(color);
+                rId.setBorder(new EmptyBorder(10, 0, 0, 0));
+                
+                JLabel rType = new JLabel(r.getRoomType(), SwingConstants.CENTER);
+                rType.setFont(UIConstants.FONT_SMALL);
+                rType.setForeground(UIConstants.COLOR_TEXT_MUTED);
+                rType.setBorder(new EmptyBorder(0, 0, 10, 0));
+                
+                rb.add(rId, BorderLayout.CENTER);
+                rb.add(rType, BorderLayout.SOUTH);
+                
+                rowPanel.add(rb);
+            }
+            roomGridPanel.add(rowPanel);
+        }
+        
+        roomGridPanel.revalidate();
+        roomGridPanel.repaint();
     }
 
-    @Override public void clearForm() {}
+    @Override
+    public void clearForm() {}
 }

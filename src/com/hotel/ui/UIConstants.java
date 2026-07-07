@@ -9,11 +9,11 @@ import javax.swing.border.*;
  */
 public class UIConstants {
 
-    // ── Core Color Palette (FlatMacDark colors) ───────────────────────────
-    public static final Color COLOR_BG_DARK       = new Color(0x1E1E1E);
-    public static final Color COLOR_BG_PANEL      = new Color(0x1E1E1E);
-    public static final Color COLOR_SIDEBAR       = new Color(0x252526);
-    public static final Color COLOR_CARD          = new Color(0x252526);
+    // ── Core Color Palette ───────────────────────────
+    public static final Color COLOR_BG_DARK       = new Color(0x13151D);
+    public static final Color COLOR_BG_PANEL      = new Color(0x1C1E26);
+    public static final Color COLOR_SIDEBAR       = new Color(0x13151D);
+    public static final Color COLOR_CARD          = new Color(0x252733);
     
     // Semantic colors (Professional Mac colors)
     public static final Color COLOR_ACCENT        = new Color(0x0A84FF); // Mac Blue

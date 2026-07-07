@@ -47,16 +47,14 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         buildUI();
-        startClock();
         showPanel("Dashboard");
     }
 
     private void buildUI() {
         JPanel root = new JPanel(new BorderLayout(0, 0));
-        root.setBackground(UIManager.getColor("Panel.background"));
+        root.setBackground(UIConstants.COLOR_BG_DARK);
         setContentPane(root);
 
-        root.add(buildHeader(), BorderLayout.NORTH);
         root.add(buildSidebar(), BorderLayout.WEST);
 
         // Content area
@@ -153,70 +151,124 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel buildSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setBackground(UIManager.getColor("RootPane.background"));
-        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Component.borderColor")));
+        JPanel sidebar = new JPanel(new BorderLayout());
+        sidebar.setBackground(UIConstants.COLOR_SIDEBAR);
+        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIConstants.COLOR_BORDER));
         sidebar.setPreferredSize(new Dimension(UIConstants.SIDEBAR_WIDTH, 0));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
-        sidebar.add(Box.createVerticalStrut(12));
+        // --- TOP: Logo ---
+        JPanel logoPanel = new JPanel();
+        logoPanel.setOpaque(false);
+        logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
+        logoPanel.setBorder(BorderFactory.createEmptyBorder(30, 20, 40, 20));
 
-        // Section label
-        JLabel navLabel = new JLabel("  NAVIGATION");
-        navLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        navLabel.setForeground(UIConstants.COLOR_ACCENT_DARK); // Dark gold
-        navLabel.setAlignmentX(LEFT_ALIGNMENT);
-        navLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-        sidebar.add(navLabel);
-        sidebar.add(Box.createVerticalStrut(8));
+        JLabel title1 = new JLabel("GRAND HOTEL");
+        title1.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title1.setForeground(UIConstants.COLOR_GOLD);
+        title1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Nav items: icon, label, card
+        JLabel title2 = new JLabel("MANAGEMENT SYSTEM");
+        title2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        title2.setForeground(new Color(150, 160, 180)); // Silver/gray
+        title2.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        logoPanel.add(title1);
+        logoPanel.add(Box.createVerticalStrut(4));
+        logoPanel.add(title2);
+        sidebar.add(logoPanel, BorderLayout.NORTH);
+
+        // --- CENTER: Navigation ---
+        JPanel navPanel = new JPanel();
+        navPanel.setOpaque(false);
+        navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
+        navPanel.add(Box.createVerticalStrut(10));
+
         Object[][] navItems = {
-            {"", "Dashboard",    "Dashboard"},
-            {"", "Rooms",        "Rooms"},
-            {"", "Guests",       "Guests"},
-            {"", "Reservations", "Reservations"},
-            {"", "Staff",        "Staff"},
-            {"", "Billing",      "Billing"},
-            {"", "Reports",      "Reports"},
+            {"", "Dashboard",     "Dashboard"},
+            {"", "Quản lý Phòng", "Rooms"},
+            {"", "Khách hàng",    "Guests"},
+            {"", "Nhân viên",     "Staff"},
+            {"", "Đặt phòng",     "Reservations"},
+            {"", "Thanh toán",    "Billing"},
+            {"", "Báo cáo",       "Reports"}
         };
 
         for (Object[] item : navItems) {
             JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             wrapper.setOpaque(false);
-            wrapper.setMaximumSize(new Dimension(UIConstants.SIDEBAR_WIDTH, 46));
+            wrapper.setMaximumSize(new Dimension(UIConstants.SIDEBAR_WIDTH, 48));
             JButton btn = createNavButton((String)item[1], (String)item[2]);
             wrapper.add(btn);
-            sidebar.add(wrapper);
+            navPanel.add(wrapper);
+            navPanel.add(Box.createVerticalStrut(5)); // Spacing between buttons
         }
+        sidebar.add(navPanel, BorderLayout.CENTER);
 
-        sidebar.add(Box.createVerticalGlue());
+        // --- BOTTOM: User Info ---
+        JPanel userPanel = new JPanel(new BorderLayout());
+        userPanel.setOpaque(false);
+        userPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 30, 20));
+        
+        JPanel userInfoText = new JPanel();
+        userInfoText.setOpaque(false);
+        userInfoText.setLayout(new BoxLayout(userInfoText, BoxLayout.Y_AXIS));
+        JLabel nameLbl = new JLabel("Hoang Quoc Bao");
+        nameLbl.setFont(UIConstants.FONT_BODY_BOLD);
+        nameLbl.setForeground(new Color(120, 130, 150));
+        JLabel roleLbl = new JLabel("ADMIN · Ca sáng");
+        roleLbl.setFont(UIConstants.FONT_SMALL);
+        roleLbl.setForeground(new Color(100, 110, 130));
+        
+        userInfoText.add(nameLbl);
+        userInfoText.add(Box.createVerticalStrut(4));
+        userInfoText.add(roleLbl);
+        userPanel.add(userInfoText, BorderLayout.WEST);
 
-        // Version
-        JPanel versionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        versionPanel.setOpaque(false);
-        JLabel versionLbl = new JLabel("v1.0  Grand Azure HMS");
-        versionLbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        versionLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
-        versionPanel.add(versionLbl);
-        sidebar.add(versionPanel);
-        sidebar.add(Box.createVerticalStrut(8));
+        // Help Button
+        JButton helpBtn = new JButton("?");
+        helpBtn.putClientProperty("JButton.buttonType", "roundRect");
+        helpBtn.setPreferredSize(new Dimension(30, 30));
+        helpBtn.setBackground(new Color(40, 42, 50));
+        helpBtn.setForeground(Color.WHITE);
+        helpBtn.setBorderPainted(false);
+        userPanel.add(helpBtn, BorderLayout.EAST);
+
+        sidebar.add(userPanel, BorderLayout.SOUTH);
 
         return sidebar;
     }
 
-    private JButton createNavButton(String label, String card) {
-        JButton btn = new JButton("  " + label);
-        btn.putClientProperty("JButton.buttonType", "borderless");
-        btn.setFont(UIConstants.FONT_BODY);
-        btn.setForeground(UIConstants.COLOR_TEXT_MUTED);
+    private JButton createNavButton(String text, String cardName) {
+        JButton btn = new JButton("  " + text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setForeground(new Color(160, 170, 190));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setMaximumSize(new Dimension(UIConstants.SIDEBAR_WIDTH - 24, 42));
-        btn.setPreferredSize(new Dimension(UIConstants.SIDEBAR_WIDTH - 24, 42));
-        btn.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+        btn.setPreferredSize(new Dimension(UIConstants.SIDEBAR_WIDTH - 30, 42));
+        btn.setFocusable(false);
+        btn.putClientProperty("JButton.buttonType", "borderless");
 
-        btn.addActionListener(e -> showPanel(card));
+        // Styling for normal and active state
+        btn.addActionListener(e -> {
+            if (activeNavBtn != null) {
+                activeNavBtn.setForeground(new Color(160, 170, 190));
+                activeNavBtn.setBackground(UIConstants.COLOR_SIDEBAR);
+                activeNavBtn.setBorder(BorderFactory.createEmptyBorder());
+                activeNavBtn.setOpaque(false);
+            }
+            btn.setForeground(UIConstants.COLOR_GOLD);
+            btn.setBackground(new Color(40, 42, 50));
+            // Add a yellow vertical line on the right, like the mockup
+            btn.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 4, UIConstants.COLOR_GOLD));
+            btn.setOpaque(true);
+            activeNavBtn = btn;
+            showPanel(cardName);
+        });
+
+        // Default style
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorder(BorderFactory.createEmptyBorder());
+
         return btn;
     }
 
@@ -257,14 +309,5 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void startClock() {
-        Timer timer = new Timer(1000, e -> {
-            clockLabel.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-            dateLabel.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, MMM d yyyy")));
-        });
-        timer.start();
-        // Immediate first tick
-        clockLabel.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        dateLabel.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, MMM d yyyy")));
-    }
+
 }

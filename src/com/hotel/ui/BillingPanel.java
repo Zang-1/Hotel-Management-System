@@ -5,19 +5,13 @@ import com.hotel.model.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * BillingPanel — View and manage billing for reservations.
- * Extends BasePanel (Inheritance + Polymorphism).
- */
 public class BillingPanel extends BasePanel {
 
     private DefaultTableModel tableModel;
     private JTable table;
-    private JLabel lblBillId, lblGuest, lblRoom, lblDates, lblNights, lblPriceNight, lblTotal;
     private JComboBox<String> cbPayMethod;
     private JTextArea txaBillDetails;
     private JButton btnGenerateBill, btnClear;
@@ -32,193 +26,211 @@ public class BillingPanel extends BasePanel {
 
     private void buildUI() {
         setLayout(new BorderLayout(0, 0));
-        add(buildHeader("Billing & Payments", "P"), BorderLayout.NORTH);
+        
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        
+        JLabel titleLbl = new JLabel("Thanh toán");
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLbl.setForeground(Color.WHITE);
+        
+        JLabel subLbl = new JLabel("Thanh toán hóa đơn cho khách hàng");
+        subLbl.setFont(UIConstants.FONT_BODY);
+        subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        
+        JPanel titleGroup = new JPanel();
+        titleGroup.setLayout(new BoxLayout(titleGroup, BoxLayout.Y_AXIS));
+        titleGroup.setOpaque(false);
+        titleGroup.add(titleLbl);
+        titleGroup.add(Box.createVerticalStrut(5));
+        titleGroup.add(subLbl);
+        
+        header.add(titleGroup, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        split.setDividerLocation(700);
-        split.setDividerSize(3);
-        split.setBorder(null);
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 0));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
 
-        // LEFT: Billing history table
-        JPanel leftPanel = new JPanel(new BorderLayout(0, 8));
-        leftPanel.setBackground(UIConstants.COLOR_BG_PANEL);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 8));
+        // LEFT: Table
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 16));
+        leftPanel.setBackground(UIConstants.COLOR_CARD);
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        JLabel tableTitle = UIHelper.createSectionHeader("All Reservations & Billing");
-        tableTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
-        leftPanel.add(tableTitle, BorderLayout.NORTH);
-
-        String[] cols = {"Res. ID", "Guest", "Room", "Type", "Check-In", "Check-Out", "Nights", "Price/Night", "Total", "Status"};
+        String[] cols = {"Mã Đặt", "Khách hàng", "Phòng", "Check-in", "Check-out", "Số đêm", "Tổng", "Trạng thái"};
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         table = new JTable(tableModel);
         UIHelper.styleTable(table);
+        table.setRowHeight(50);
+        
         table.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) onTableSelect();
+            if (!e.getValueIsAdjusting()) {
+                int row = table.getSelectedRow();
+                if (row >= 0) {
+                    String resId = (String) table.getValueAt(row, 0);
+                    for (int i = 0; i < cbReservation.getItemCount(); i++) {
+                        if (cbReservation.getItemAt(i).getReservationId().equals(resId)) {
+                            cbReservation.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+            }
         });
+
         leftPanel.add(UIHelper.createScrollPane(table), BorderLayout.CENTER);
+        contentPanel.add(leftPanel, BorderLayout.CENTER);
 
-        // Summary bar at bottom
-        JPanel summaryBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        summaryBar.setBackground(UIConstants.COLOR_CARD);
-        summaryBar.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        JLabel totalRevLbl = new JLabel("Total Revenue: ");
-        totalRevLbl.setFont(UIConstants.FONT_BODY_BOLD);
-        totalRevLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
-        summaryBar.add(totalRevLbl);
-        JLabel totalRevVal = new JLabel("$0");
-        totalRevVal.setFont(UIConstants.FONT_SUBTITLE);
-        totalRevVal.setForeground(UIConstants.COLOR_GOLD);
-        summaryBar.add(totalRevVal);
-        leftPanel.add(summaryBar, BorderLayout.SOUTH);
-        split.setLeftComponent(leftPanel);
+        // RIGHT: Form
+        JPanel formPanel = buildFormPanel();
+        formPanel.setPreferredSize(new Dimension(350, 0));
+        contentPanel.add(formPanel, BorderLayout.EAST);
 
-        // RIGHT: Bill generator
-        JPanel rightPanel = buildFormCard("Generate Bill");
-
-        // Reservation selector
-        JPanel selectorPanel = new JPanel(new BorderLayout(8, 0));
-        selectorPanel.setOpaque(false);
-        selectorPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
-        JLabel resLabel = UIHelper.createLabel("Select Reservation:");
-        cbReservation = new JComboBox<>();
-        cbReservation.setBackground(UIConstants.COLOR_INPUT_BG);
-        cbReservation.setForeground(UIConstants.COLOR_TEXT_PRIMARY);
-        cbReservation.setFont(UIConstants.FONT_INPUT);
-        cbReservation.addActionListener(e -> populateBillDetails());
-        selectorPanel.add(resLabel, BorderLayout.WEST);
-        selectorPanel.add(cbReservation, BorderLayout.CENTER);
-        rightPanel.add(selectorPanel, BorderLayout.NORTH);
-
-        // Bill details display
-        txaBillDetails = new JTextArea();
-        txaBillDetails.setEditable(false);
-        txaBillDetails.setFont(new Font("Consolas", Font.PLAIN, 12));
-        txaBillDetails.setBackground(UIConstants.COLOR_INPUT_BG);
-        txaBillDetails.setForeground(UIConstants.COLOR_TEXT_PRIMARY);
-        txaBillDetails.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        txaBillDetails.setLineWrap(true);
-        JScrollPane billScroll = new JScrollPane(txaBillDetails);
-        billScroll.setBorder(BorderFactory.createLineBorder(UIConstants.COLOR_BORDER));
-        rightPanel.add(billScroll, BorderLayout.CENTER);
-
-        // Payment method + buttons
-        JPanel bottomPanel = new JPanel(new GridLayout(0, 1, 0, 8));
-        bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-
-        JPanel payRow = new JPanel(new BorderLayout(8, 0));
-        payRow.setOpaque(false);
-        payRow.add(UIHelper.createLabel("Payment Method:"), BorderLayout.WEST);
-        cbPayMethod = UIHelper.createComboBox(new String[]{"Cash", "Credit Card", "Debit Card", "Bank Transfer", "Online Payment"});
-        payRow.add(cbPayMethod, BorderLayout.CENTER);
-        bottomPanel.add(payRow);
-
-        btnGenerateBill = UIHelper.createSuccessButton("Print Bill");
-        btnClear        = UIHelper.createSecondaryButton("\u21BA Clear");
-        btnGenerateBill.addActionListener(e -> printBill());
-        btnClear.addActionListener(e -> clearForm());
-
-        bottomPanel.add(btnGenerateBill);
-        bottomPanel.add(btnClear);
-        rightPanel.add(bottomPanel, BorderLayout.SOUTH);
-
-        split.setRightComponent(rightPanel);
-        add(split, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
         refreshTable();
     }
 
-    private void onTableSelect() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
-        List<Reservation> all = reservationManager.getAllReservations();
-        if (row >= all.size()) return;
-        Reservation r = all.get(all.size() - 1 - row); // reversed display
-        cbReservation.setSelectedItem(r);
-        populateBillDetails();
+    private JPanel buildFormPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 10));
+        panel.setBackground(UIConstants.COLOR_CARD);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLbl = new JLabel("LẬP HÓA ĐƠN");
+        titleLbl.setFont(UIConstants.FONT_SUBTITLE);
+        titleLbl.setForeground(Color.WHITE);
+        titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        panel.add(titleLbl, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 10));
+        centerPanel.setOpaque(false);
+        
+        JPanel topForm = new JPanel(new GridLayout(0, 1, 0, 10));
+        topForm.setOpaque(false);
+        
+        cbReservation = new JComboBox<>();
+        cbReservation.setBackground(UIConstants.COLOR_BG_DARK);
+        cbReservation.addActionListener(e -> populateBillDetails());
+        
+        cbPayMethod = UIHelper.createComboBox(new String[]{"Tiền mặt", "Thẻ tín dụng", "Chuyển khoản"});
+        cbPayMethod.setBackground(UIConstants.COLOR_BG_DARK);
+        cbPayMethod.addActionListener(e -> populateBillDetails());
+
+        addVGroup(topForm, "Chọn mã đặt phòng", cbReservation);
+        centerPanel.add(topForm, BorderLayout.NORTH);
+
+        txaBillDetails = new JTextArea();
+        txaBillDetails.setEditable(false);
+        txaBillDetails.setFont(new Font("Consolas", Font.PLAIN, 13));
+        txaBillDetails.setBackground(UIConstants.COLOR_BG_DARK);
+        txaBillDetails.setForeground(Color.WHITE);
+        txaBillDetails.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanel.add(new JScrollPane(txaBillDetails), BorderLayout.CENTER);
+        
+        JPanel botForm = new JPanel(new GridLayout(0, 1, 0, 10));
+        botForm.setOpaque(false);
+        addVGroup(botForm, "Phương thức thanh toán", cbPayMethod);
+        centerPanel.add(botForm, BorderLayout.SOUTH);
+
+        panel.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        btnPanel.setOpaque(false);
+        btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+
+        btnGenerateBill = new JButton("In Hóa đơn");
+        btnGenerateBill.setBackground(UIConstants.COLOR_SUCCESS);
+        btnGenerateBill.setForeground(Color.WHITE);
+        btnGenerateBill.setFont(UIConstants.FONT_BODY_BOLD);
+        btnGenerateBill.setFocusable(false);
+        
+        btnClear = new JButton("Làm mới");
+        btnClear.setBackground(UIConstants.COLOR_BG_DARK);
+        btnClear.setForeground(Color.WHITE);
+        btnClear.setFont(UIConstants.FONT_BODY);
+        btnClear.setFocusable(false);
+
+        btnGenerateBill.addActionListener(e -> {
+            UIHelper.showInfo(this, "Đã in hóa đơn thành công!");
+        });
+        btnClear.addActionListener(e -> clearForm());
+
+        btnPanel.add(btnGenerateBill);
+        btnPanel.add(btnClear);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void addVGroup(JPanel parent, String label, JComponent comp) {
+        JPanel p = new JPanel(new BorderLayout(0, 5));
+        p.setOpaque(false);
+        JLabel lbl = new JLabel(label);
+        lbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
+        lbl.setFont(UIConstants.FONT_SMALL);
+        p.add(lbl, BorderLayout.NORTH);
+        comp.setPreferredSize(new Dimension(0, 40));
+        p.add(comp, BorderLayout.CENTER);
+        parent.add(p);
     }
 
     private void populateBillDetails() {
         Object selected = cbReservation.getSelectedItem();
-        if (!(selected instanceof Reservation)) return;
-        Reservation r = (Reservation) selected;
-
-        String payMethod = (String) cbPayMethod.getSelectedItem();
-        String bill = buildBillText(r, payMethod);
-        txaBillDetails.setText(bill);
-    }
-
-    private String buildBillText(Reservation r, String payMethod) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("═══════════════════════════════════\n");
-        sb.append("       GRAND AZURE HOTEL           \n");
-        sb.append("       ★★★★★ Receipt              \n");
-        sb.append("═══════════════════════════════════\n\n");
-        sb.append(String.format("Bill ID     : BILL-%s\n", r.getReservationId()));
-        sb.append(String.format("Date        : %s\n\n", LocalDate.now().format(DATE_FMT)));
-        sb.append("─── GUEST INFORMATION ─────────────\n");
-        sb.append(String.format("Guest       : %s\n", r.getGuest().getName()));
-        sb.append(String.format("Phone       : %s\n", r.getGuest().getPhoneNumber()));
-        sb.append(String.format("ID Card     : %s\n\n", r.getGuest().getIdentityCard()));
-        sb.append("─── ROOM INFORMATION ───────────────\n");
-        sb.append(String.format("Room        : %s (%s)\n", r.getRoom().getRoomId(), r.getRoom().getRoomType()));
-        sb.append(String.format("Floor       : %d\n", r.getRoom().getFloor()));
-        sb.append(String.format("Check-in    : %s\n", r.getCheckInDate().format(DATE_FMT)));
-        sb.append(String.format("Check-out   : %s\n", r.getCheckOutDate().format(DATE_FMT)));
-        sb.append(String.format("Duration    : %d night(s)\n\n", r.getNumberOfNights()));
-        sb.append("─── PRICING ────────────────────────\n");
-        // Polymorphism: display dynamic price per night
-        sb.append(String.format("Base price  : $%.0f/night\n", r.getRoom().getBasePricePerNight()));
-        sb.append(String.format("Actual price: $%.0f/night\n", r.getRoom().calculatePricePerNight()));
-        sb.append(String.format("Subtotal    : $%.0f x %d nights\n", r.getRoom().calculatePricePerNight(), r.getNumberOfNights()));
-        sb.append(String.format("TAX (10%%)   : $%.0f\n", r.getTotalAmount() * 0.1));
-        sb.append(String.format("─────────────────────────────────\n"));
-        sb.append(String.format("TOTAL DUE   : $%.0f\n\n", r.getTotalAmount() * 1.1));
-        sb.append(String.format("Payment     : %s\n", payMethod));
-        sb.append(String.format("Status      : %s\n\n", r.getStatus().name()));
-        sb.append("═══════════════════════════════════\n");
-        sb.append("  Thank you for staying with us!   \n");
-        sb.append("  We hope to see you again soon.   \n");
-        sb.append("═══════════════════════════════════\n");
-        return sb.toString();
-    }
-
-    private void printBill() {
-        if (txaBillDetails.getText().isEmpty()) {
-            UIHelper.showError(this, "Please select a reservation first!"); return;
+        if (!(selected instanceof Reservation)) {
+            txaBillDetails.setText("");
+            return;
         }
-        UIHelper.showInfo(this, "Bill generated!\n(In a production system, this would print or export as PDF.)");
+        Reservation r = (Reservation) selected;
+        String payMethod = (String) cbPayMethod.getSelectedItem();
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("==============================\n");
+        sb.append("      GRAND AZURE HOTEL\n");
+        sb.append("==============================\n");
+        sb.append("HÓA ĐƠN THANH TOÁN\n\n");
+        sb.append("Mã Đặt: ").append(r.getReservationId()).append("\n");
+        sb.append("Khách: ").append(r.getGuest().getName()).append("\n");
+        sb.append("Phòng: ").append(r.getRoom().getRoomId()).append(" (").append(r.getRoom().getRoomType()).append(")\n");
+        sb.append("Ngày In: ").append(r.getCheckInDate().format(DATE_FMT)).append("\n");
+        sb.append("Ngày Out: ").append(r.getCheckOutDate().format(DATE_FMT)).append("\n");
+        sb.append("Số đêm: ").append(r.getNumberOfNights()).append("\n");
+        sb.append("Giá/đêm: $").append((int)r.getRoom().calculatePricePerNight()).append("\n");
+        sb.append("------------------------------\n");
+        sb.append("TỔNG CỘNG: $").append((int)r.getTotalAmount()).append("\n");
+        sb.append("Phương thức: ").append(payMethod).append("\n");
+        sb.append("==============================\n");
+        sb.append("      Xin cảm ơn quý khách!\n");
+        
+        txaBillDetails.setText(sb.toString());
     }
 
     @Override
     public void refreshTable() {
-        cbReservation.removeAllItems();
-        List<Reservation> all = reservationManager.getAllReservations();
-        for (Reservation r : all) cbReservation.addItem(r);
-
         tableModel.setRowCount(0);
-        for (int i = all.size() - 1; i >= 0; i--) {
-            Reservation r = all.get(i);
+        cbReservation.removeAllItems();
+        
+        List<Reservation> list = reservationManager.getAllReservations();
+        for (Reservation res : list) {
             tableModel.addRow(new Object[]{
-                r.getReservationId(),
-                r.getGuest().getName(),
-                r.getRoom().getRoomId(),
-                r.getRoom().getRoomType(),
-                r.getCheckInDate().format(DATE_FMT),
-                r.getCheckOutDate().format(DATE_FMT),
-                r.getNumberOfNights(),
-                String.format("$%.0f", r.getRoom().calculatePricePerNight()),
-                String.format("$%.0f", r.getTotalAmount()),
-                r.getStatus().name()
+                res.getReservationId(),
+                res.getGuest().getName(),
+                res.getRoom().getRoomId(),
+                res.getCheckInDate().format(DATE_FMT),
+                res.getCheckOutDate().format(DATE_FMT),
+                res.getNumberOfNights(),
+                "$" + (int)res.getTotalAmount(),
+                res.getStatus().name()
             });
+            cbReservation.addItem(res);
         }
     }
 
     @Override
     public void clearForm() {
+        if(cbReservation.getItemCount() > 0) cbReservation.setSelectedIndex(0);
+        cbPayMethod.setSelectedIndex(0);
         txaBillDetails.setText("");
-        cbReservation.setSelectedIndex(0);
-        populateBillDetails();
     }
 }

@@ -16,6 +16,8 @@ javac -encoding UTF-8 -cp "lib/*" -d bin ^
   src/com/hotel/model/Guest.java ^
   src/com/hotel/model/Reservation.java ^
   src/com/hotel/model/Staff.java ^
+  src/com/hotel/exception/DuplicateDataException.java ^
+  src/com/hotel/exception/ValidationException.java ^
   src/com/hotel/util/FileHandler.java ^
   src/com/hotel/dao/RoomDAO.java ^
   src/com/hotel/dao/GuestDAO.java ^
@@ -27,6 +29,7 @@ javac -encoding UTF-8 -cp "lib/*" -d bin ^
   src/com/hotel/manager/StaffManager.java ^
   src/com/hotel/ui/UIConstants.java ^
   src/com/hotel/ui/UIHelper.java ^
+  src/com/hotel/ui/TableActionCell.java ^
   src/com/hotel/ui/BasePanel.java ^
   src/com/hotel/ui/LoginFrame.java ^
   src/com/hotel/ui/DashboardPanel.java ^

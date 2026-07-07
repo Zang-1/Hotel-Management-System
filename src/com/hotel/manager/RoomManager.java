@@ -1,6 +1,7 @@
 package com.hotel.manager;
 
 import com.hotel.dao.RoomDAO;
+import com.hotel.exception.DuplicateDataException;
 import com.hotel.model.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,12 @@ public class RoomManager {
         save();
     }
 
-    public boolean addRoom(Room room) {
-        if (findById(room.getRoomId()) != null) return false;
+    // Theo Bài giảng Chương 3: Khai báo hàm có thể ném ra Exception (từ khóa throws)
+    public boolean addRoom(Room room) throws DuplicateDataException {
+        if (findById(room.getRoomId()) != null) {
+            // Theo Bài giảng Chương 3: Sử dụng từ khóa throw để ném ngoại lệ
+            throw new DuplicateDataException("Mã phòng " + room.getRoomId() + " đã tồn tại trong hệ thống!");
+        }
         rooms.add(room);
         return save();
     }

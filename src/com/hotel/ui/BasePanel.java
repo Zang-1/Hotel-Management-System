@@ -53,7 +53,7 @@ public abstract class BasePanel extends JPanel {
             BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
 
-        searchField.putClientProperty("JTextField.placeholderText", "Search...");
+        searchField.putClientProperty("JTextField.placeholderText", "Tìm kiếm...");
         searchField.setPreferredSize(new Dimension(280, UIConstants.INPUT_HEIGHT));
         bar.add(searchField);
         bar.add(searchBtn);

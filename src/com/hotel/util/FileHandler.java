@@ -51,4 +51,20 @@ public class FileHandler {
         File file = new File(filePath);
         return file.exists() && file.delete();
     }
+
+    /**
+     * TÍNH NĂNG BỔ SUNG ĐỂ KHỚP VỚI BÀI GIẢNG CHƯƠNG 3 (Slide 38-40):
+     * Ghi báo cáo ra file văn bản (Text file) sử dụng BufferedWriter và try-with-resources
+     */
+    public static boolean exportToTextFile(String content, String filePath) {
+        // Theo Bài giảng: Sử dụng BufferedWriter để ghi file hiệu suất cao, 
+        // sử dụng try-with-resources để tự động đóng file (auto-close) mà không cần khối finally.
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(content);
+            return true;
+        } catch (IOException e) {
+            System.err.println("[FileHandler] Lỗi khi ghi ra file văn bản: " + e.getMessage());
+            return false;
+        }
+    }
 }

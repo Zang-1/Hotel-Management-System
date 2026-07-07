@@ -62,6 +62,18 @@ public class UIHelper {
         return btn;
     }
 
+    // ── Table Action Buttons ───────────────────────────────────────────────
+    
+    public static JButton createActionButton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.putClientProperty("JButton.buttonType", "outlined");
+        btn.setForeground(color);
+        btn.setFocusable(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setMargin(new Insets(2, 8, 2, 8));
+        return btn;
+    }
+
     // ── Form Inputs ────────────────────────────────────────────────────────
 
     public static JTextField createTextField(String placeholder) {
