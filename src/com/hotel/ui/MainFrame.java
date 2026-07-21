@@ -184,13 +184,13 @@ public class MainFrame extends JFrame {
         navPanel.add(Box.createVerticalStrut(10));
 
         Object[][] navItems = {
-            {"", "Dashboard",     "Dashboard"},
-            {"", "Quản lý Phòng", "Rooms"},
-            {"", "Khách hàng",    "Guests"},
-            {"", "Nhân viên",     "Staff"},
-            {"", "Đặt phòng",     "Reservations"},
-            {"", "Thanh toán",    "Billing"},
-            {"", "Báo cáo",       "Reports"}
+            {"", com.hotel.util.LangManager.getString("menu.dashboard"),     "Dashboard"},
+            {"", com.hotel.util.LangManager.getString("menu.rooms"), "Rooms"},
+            {"", com.hotel.util.LangManager.getString("menu.guests"),    "Guests"},
+            {"", com.hotel.util.LangManager.getString("menu.staff"),     "Staff"},
+            {"", com.hotel.util.LangManager.getString("menu.reservations"),     "Reservations"},
+            {"", com.hotel.util.LangManager.getString("menu.billing"),    "Billing"},
+            {"", com.hotel.util.LangManager.getString("menu.reports"),       "Reports"}
         };
 
         for (Object[] item : navItems) {
@@ -224,14 +224,7 @@ public class MainFrame extends JFrame {
         userInfoText.add(roleLbl);
         userPanel.add(userInfoText, BorderLayout.WEST);
 
-        // Help Button
-        JButton helpBtn = new JButton("?");
-        helpBtn.putClientProperty("JButton.buttonType", "roundRect");
-        helpBtn.setPreferredSize(new Dimension(30, 30));
-        helpBtn.setBackground(new Color(40, 42, 50));
-        helpBtn.setForeground(Color.WHITE);
-        helpBtn.setBorderPainted(false);
-        userPanel.add(helpBtn, BorderLayout.EAST);
+
 
         sidebar.add(userPanel, BorderLayout.SOUTH);
 

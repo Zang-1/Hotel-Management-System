@@ -28,11 +28,11 @@ public class GuestPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
         
-        JLabel titleLbl = new JLabel("Khách hàng");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.guests"));
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Quản lý thông tin khách lưu trú");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.guest"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -70,7 +70,13 @@ public class GuestPanel extends BasePanel {
         leftPanel.add(searchBox, BorderLayout.NORTH);
 
         // Table
-        String[] cols = {"Mã KH", "Họ tên", "Điện thoại", "CCCD/CMND", "Email"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.guest_id").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.name").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.phone").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.id_card"),
+            com.hotel.util.LangManager.getString("lbl.email")
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -100,7 +106,7 @@ public class GuestPanel extends BasePanel {
         panel.setBackground(UIConstants.COLOR_CARD);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLbl = new JLabel("THÊM KHÁCH HÀNG");
+        JLabel titleLbl = new JLabel((com.hotel.util.LangManager.getString("btn.add") + " " + com.hotel.util.LangManager.getString("lbl.guest")).toUpperCase());
         titleLbl.setFont(UIConstants.FONT_SUBTITLE);
         titleLbl.setForeground(Color.WHITE);
         titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -116,12 +122,12 @@ public class GuestPanel extends BasePanel {
         txtEmail = UIHelper.createTextField("");
         txtAddress = UIHelper.createTextField("");
 
-        addVGroup(form, "Mã KH *", txtGuestId);
-        addVGroup(form, "Họ tên *", txtName);
-        addVGroup(form, "Điện thoại *", txtPhone);
-        addVGroup(form, "CCCD/CMND", txtIdCard);
-        addVGroup(form, "Email", txtEmail);
-        addVGroup(form, "Địa chỉ", txtAddress);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.guest_id"), txtGuestId);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.name"), txtName);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.phone"), txtPhone);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.id_card"), txtIdCard);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.email"), txtEmail);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.address"), txtAddress);
 
         panel.add(form, BorderLayout.CENTER);
 
@@ -130,13 +136,13 @@ public class GuestPanel extends BasePanel {
         btnPanel.setOpaque(false);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        btnAdd = new JButton("Thêm KH");
+        btnAdd = new JButton(com.hotel.util.LangManager.getString("btn.add"));
         btnAdd.setBackground(UIConstants.COLOR_GOLD);
         btnAdd.setForeground(Color.BLACK);
         btnAdd.setFont(UIConstants.FONT_BODY_BOLD);
         btnAdd.setFocusable(false);
         
-        btnClear = new JButton("Xóa form");
+        btnClear = new JButton(com.hotel.util.LangManager.getString("btn.clear"));
         btnClear.setBackground(UIConstants.COLOR_BG_DARK);
         btnClear.setForeground(Color.WHITE);
         btnClear.setFont(UIConstants.FONT_BODY);
@@ -172,17 +178,17 @@ public class GuestPanel extends BasePanel {
         String id = txtGuestId.getText().trim();
         String name = txtName.getText().trim();
         if (id.isEmpty() || name.isEmpty()) {
-            UIHelper.showError(this, "Vui lòng nhập Mã KH và Họ tên!");
+            UIHelper.showError(this, com.hotel.util.LangManager.getString("err.empty_fields"));
             return;
         }
         if (guestManager.findById(id) != null) {
-            UIHelper.showError(this, "Mã KH đã tồn tại!");
+            UIHelper.showError(this, com.hotel.util.LangManager.getString("err.id_exists"));
             return;
         }
         
         Guest g = new Guest(id, name, txtPhone.getText(), txtIdCard.getText(), txtEmail.getText(), txtAddress.getText());
         guestManager.addGuest(g);
-        UIHelper.showInfo(this, "Đã thêm khách hàng!");
+        UIHelper.showInfo(this, com.hotel.util.LangManager.getString("msg.add_success"));
         refreshTable();
         clearForm();
     }
@@ -204,6 +210,7 @@ public class GuestPanel extends BasePanel {
     @Override
     public void clearForm() {
         txtGuestId.setText("");
+        btnAdd.setText(com.hotel.util.LangManager.getString("btn.add"));
         txtName.setText("");
         txtPhone.setText("");
         txtIdCard.setText("");

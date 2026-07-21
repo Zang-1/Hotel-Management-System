@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import com.hotel.util.LangManager;
 
 public class DashboardPanel extends BasePanel {
 
@@ -39,17 +40,17 @@ public class DashboardPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(0, 0, 20, 0));
         
-        JLabel titleLbl = new JLabel("Dashboard");
+        JLabel titleLbl = new JLabel(LangManager.getString("dashboard.title"));
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
         titleLbl.setForeground(Color.WHITE);
         
-        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM, yyyy", new Locale("vi", "VN")));
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM, yyyy", Locale.forLanguageTag("vi-VN")));
         // Capitalize first letter
         if (dateStr.length() > 0) {
             dateStr = dateStr.substring(0, 1).toUpperCase() + dateStr.substring(1);
         }
         
-        JLabel subLbl = new JLabel("Tổng quan hệ thống — " + dateStr);
+        JLabel subLbl = new JLabel(LangManager.getString("dashboard.sub") + " — " + dateStr);
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -75,23 +76,23 @@ public class DashboardPanel extends BasePanel {
 
         // TỔNG PHÒNG
         lblTotalRooms = new JLabel("0");
-        lblTotalRoomsSub = new JLabel("0 trống · 0 có khách");
-        statsPanel.add(buildStatCard("TỔNG PHÒNG", lblTotalRooms, lblTotalRoomsSub, new Color(100, 150, 255)));
+        lblTotalRoomsSub = new JLabel("0 " + LangManager.getString("status.empty") + " · 0 " + LangManager.getString("status.occupied"));
+        statsPanel.add(buildStatCard(LangManager.getString("dashboard.total_rooms").toUpperCase(), lblTotalRooms, lblTotalRoomsSub, new Color(100, 150, 255)));
 
         // KHÁCH ĐANG LƯU TRÚ
         lblActiveGuests = new JLabel("0");
-        lblActiveGuestsSub = new JLabel("0 chờ nhận phòng");
-        statsPanel.add(buildStatCard("KHÁCH ĐANG LƯU TRÚ", lblActiveGuests, lblActiveGuestsSub, UIConstants.COLOR_SUCCESS));
+        lblActiveGuestsSub = new JLabel("0 " + LangManager.getString("status.pending"));
+        statsPanel.add(buildStatCard(LangManager.getString("dashboard.occupied").toUpperCase(), lblActiveGuests, lblActiveGuestsSub, UIConstants.COLOR_SUCCESS));
 
         // TỔNG KHÁCH HÀNG
         lblTotalGuests = new JLabel("0");
-        JLabel lblTotalGuestsSub = new JLabel("Trong hệ thống");
-        statsPanel.add(buildStatCard("TỔNG KHÁCH HÀNG", lblTotalGuests, lblTotalGuestsSub, UIConstants.COLOR_GOLD));
+        JLabel lblTotalGuestsSub = new JLabel(LangManager.getLanguage().equals("vi") ? "Trong hệ thống" : "In system");
+        statsPanel.add(buildStatCard(LangManager.getString("dashboard.total_guests").toUpperCase(), lblTotalGuests, lblTotalGuestsSub, UIConstants.COLOR_GOLD));
 
         // DOANH THU
-        lblRevenue = new JLabel("$0");
-        JLabel lblRevSub = new JLabel("Tổng tích lũy");
-        statsPanel.add(buildStatCard("DOANH THU", lblRevenue, lblRevSub, new Color(191, 90, 242)));
+        lblRevenue = new JLabel("0");
+        JLabel lblRevSub = new JLabel(LangManager.getLanguage().equals("vi") ? "Tổng tích lũy" : "Total accumulated");
+        statsPanel.add(buildStatCard(LangManager.getString("dashboard.revenue").toUpperCase(), lblRevenue, lblRevSub, new Color(191, 90, 242)));
 
         content.add(statsPanel);
         content.add(Box.createVerticalStrut(20));
@@ -103,7 +104,7 @@ public class DashboardPanel extends BasePanel {
         // LEFT: Recent Reservations
         JPanel recentCard = createCardPanel();
         recentCard.setLayout(new BorderLayout(0, 15));
-        JLabel recentTitle = new JLabel("PHIẾU ĐẶT PHÒNG GẦN ĐÂY");
+        JLabel recentTitle = new JLabel(LangManager.getString("dashboard.recent_res"));
         recentTitle.setFont(UIConstants.FONT_SMALL_BOLD);
         recentTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
         recentCard.add(recentTitle, BorderLayout.NORTH);
@@ -227,7 +228,7 @@ public class DashboardPanel extends BasePanel {
         long pending = resList.stream().filter(r -> r.getStatus() == Reservation.Status.PENDING).count();
         
         lblActiveGuests.setText(String.valueOf(checkedIn));
-        lblActiveGuestsSub.setText(pending + " chờ nhận phòng");
+        lblActiveGuestsSub.setText(pending + " " + LangManager.getString("status.pending").toLowerCase());
 
         lblTotalGuests.setText(String.valueOf(guestManager.getAllGuests().size()));
 
@@ -235,7 +236,7 @@ public class DashboardPanel extends BasePanel {
             .filter(r -> r.getStatus() != Reservation.Status.CANCELLED)
             .mapToDouble(Reservation::getTotalAmount)
             .sum();
-        lblRevenue.setText("$" + String.format("%,.0f", revenue));
+        lblRevenue.setText(LangManager.formatCurrency(revenue));
 
         // Recent Reservations Table
         recentModel.setRowCount(0);
@@ -255,10 +256,10 @@ public class DashboardPanel extends BasePanel {
         if (recent.size() > 5) recent = recent.subList(0, 5);
             
         for (Reservation r : recent) {
-            String st = "Đã hủy";
-            if (r.getStatus() == Reservation.Status.PENDING) st = "Chờ nhận";
-            else if (r.getStatus() == Reservation.Status.CHECKED_IN) st = "Đã nhận";
-            else if (r.getStatus() == Reservation.Status.CHECKED_OUT) st = "Đã trả";
+            String st = LangManager.getString("status.cancelled");
+            if (r.getStatus() == Reservation.Status.PENDING) st = LangManager.getString("status.pending");
+            else if (r.getStatus() == Reservation.Status.CHECKED_IN) st = LangManager.getString("status.checked_in");
+            else if (r.getStatus() == Reservation.Status.CHECKED_OUT) st = LangManager.getString("status.checked_out");
             
             recentModel.addRow(new Object[]{
                 r.getReservationId(),

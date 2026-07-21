@@ -19,6 +19,7 @@ javac -encoding UTF-8 -cp "lib/*" -d bin ^
   src/com/hotel/exception/DuplicateDataException.java ^
   src/com/hotel/exception/ValidationException.java ^
   src/com/hotel/util/FileHandler.java ^
+  src/com/hotel/util/LangManager.java ^
   src/com/hotel/dao/RoomDAO.java ^
   src/com/hotel/dao/GuestDAO.java ^
   src/com/hotel/dao/ReservationDAO.java ^

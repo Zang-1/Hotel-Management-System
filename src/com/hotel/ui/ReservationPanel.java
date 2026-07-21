@@ -8,8 +8,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
 
 public class ReservationPanel extends BasePanel {
 
@@ -19,7 +20,7 @@ public class ReservationPanel extends BasePanel {
     // Form fields
     private JComboBox<String> cbGuest;
     private JComboBox<String> cbRoom;
-    private JTextField txtCheckIn, txtCheckOut;
+    private DatePicker dpCheckIn, dpCheckOut;
     private JTextField searchField;
     private JButton btnAdd, btnClear;
     private JLabel lblTotal;
@@ -42,7 +43,7 @@ public class ReservationPanel extends BasePanel {
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Quản lý khách hàng đặt phòng và nhận/trả phòng");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.res"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -77,7 +78,15 @@ public class ReservationPanel extends BasePanel {
 
         leftPanel.add(searchBox, BorderLayout.NORTH);
 
-        String[] cols = {"Mã Đặt", "Khách hàng", "Phòng", "Check-in", "Check-out", "Trạng thái", "Thao tác"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.res_id").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.guest").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.room").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.checkin").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.checkout").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.status").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.action").toUpperCase()
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return c == 6; }
         };
@@ -158,7 +167,7 @@ public class ReservationPanel extends BasePanel {
         panel.setBackground(UIConstants.COLOR_CARD);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLbl = new JLabel("TẠO ĐẶT PHÒNG");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.reservations").toUpperCase());
         titleLbl.setFont(UIConstants.FONT_SUBTITLE);
         titleLbl.setForeground(Color.WHITE);
         titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -173,18 +182,33 @@ public class ReservationPanel extends BasePanel {
         cbRoom = new JComboBox<>();
         cbRoom.setBackground(UIConstants.COLOR_BG_DARK);
         
-        txtCheckIn = UIHelper.createTextField(LocalDate.now().format(DATE_FMT));
-        txtCheckOut = UIHelper.createTextField(LocalDate.now().plusDays(1).format(DATE_FMT));
+        DatePickerSettings inSet = new DatePickerSettings();
+        inSet.setFormatForDatesCommonEra("dd/MM/yyyy");
+        inSet.setFormatForDatesBeforeCommonEra("dd/MM/yyyy");
+        UIHelper.applyCalendarDarkTheme(inSet);
+        dpCheckIn = new DatePicker(inSet);
+        dpCheckIn.setDate(LocalDate.now());
+        dpCheckIn.getComponentDateTextField().setBackground(UIConstants.COLOR_BG_DARK);
+        dpCheckIn.getComponentDateTextField().setForeground(Color.WHITE);
         
-        lblTotal = new JLabel("$0");
+        DatePickerSettings outSet = new DatePickerSettings();
+        outSet.setFormatForDatesCommonEra("dd/MM/yyyy");
+        outSet.setFormatForDatesBeforeCommonEra("dd/MM/yyyy");
+        UIHelper.applyCalendarDarkTheme(outSet);
+        dpCheckOut = new DatePicker(outSet);
+        dpCheckOut.setDate(LocalDate.now().plusDays(1));
+        dpCheckOut.getComponentDateTextField().setBackground(UIConstants.COLOR_BG_DARK);
+        dpCheckOut.getComponentDateTextField().setForeground(Color.WHITE);
+        
+        lblTotal = new JLabel("0");
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTotal.setForeground(UIConstants.COLOR_GOLD);
 
-        addVGroup(form, "Chọn khách hàng *", cbGuest);
-        addVGroup(form, "Chọn phòng *", cbRoom);
-        addVGroup(form, "Ngày Check-in (dd/MM/yyyy) *", txtCheckIn);
-        addVGroup(form, "Ngày Check-out (dd/MM/yyyy) *", txtCheckOut);
-        addVGroup(form, "Thành tiền ($)", lblTotal);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.choose_guest"), cbGuest);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.choose_room"), cbRoom);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.checkin_date"), dpCheckIn);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.checkout_date"), dpCheckOut);
+        addVGroup(form, com.hotel.util.LangManager.getString("dashboard.revenue"), lblTotal);
 
         panel.add(form, BorderLayout.CENTER);
 
@@ -192,13 +216,13 @@ public class ReservationPanel extends BasePanel {
         btnPanel.setOpaque(false);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        btnAdd = new JButton("Tạo đặt phòng");
+        btnAdd = new JButton(com.hotel.util.LangManager.getString("btn.add"));
         btnAdd.setBackground(UIConstants.COLOR_GOLD);
         btnAdd.setForeground(Color.BLACK);
         btnAdd.setFont(UIConstants.FONT_BODY_BOLD);
         btnAdd.setFocusable(false);
         
-        btnClear = new JButton("Làm mới form");
+        btnClear = new JButton(com.hotel.util.LangManager.getString("btn.clear"));
         btnClear.setBackground(UIConstants.COLOR_BG_DARK);
         btnClear.setForeground(Color.WHITE);
         btnClear.setFont(UIConstants.FONT_BODY);
@@ -213,8 +237,8 @@ public class ReservationPanel extends BasePanel {
         
         // Auto update comboboxes
         cbRoom.addActionListener(e -> calcPrice());
-        txtCheckIn.addActionListener(e -> calcPrice());
-        txtCheckOut.addActionListener(e -> calcPrice());
+        dpCheckIn.addDateChangeListener(e -> calcPrice());
+        dpCheckOut.addDateChangeListener(e -> calcPrice());
 
         return panel;
     }
@@ -243,14 +267,15 @@ public class ReservationPanel extends BasePanel {
         if(r == null) return;
         
         try {
-            LocalDate in = LocalDate.parse(txtCheckIn.getText(), DATE_FMT);
-            LocalDate out = LocalDate.parse(txtCheckOut.getText(), DATE_FMT);
+            LocalDate in = dpCheckIn.getDate();
+            LocalDate out = dpCheckOut.getDate();
+            if (in == null || out == null) { lblTotal.setText("0"); return; }
             long days = java.time.temporal.ChronoUnit.DAYS.between(in, out);
-            if(days <= 0) { lblTotal.setText("$0"); return; }
+            if(days <= 0) { lblTotal.setText("0"); return; }
             double total = r.calculatePricePerNight() * days;
-            lblTotal.setText("$" + (int)total);
+            lblTotal.setText(com.hotel.util.LangManager.formatCurrency(total));
         } catch(Exception e) {
-            lblTotal.setText("$0");
+            lblTotal.setText("0");
         }
     }
 
@@ -267,9 +292,13 @@ public class ReservationPanel extends BasePanel {
         Room r = roomManager.findById(rStr.split(" -")[0]);
         
         try {
-            LocalDate in = LocalDate.parse(txtCheckIn.getText(), DATE_FMT);
-            LocalDate out = LocalDate.parse(txtCheckOut.getText(), DATE_FMT);
+            LocalDate in = dpCheckIn.getDate();
+            LocalDate out = dpCheckOut.getDate();
             
+            if (in == null || out == null) {
+                UIHelper.showError(this, "Vui lòng chọn ngày hợp lệ!");
+                return;
+            }
             if (!in.isBefore(out)) {
                 UIHelper.showError(this, "Ngày check-out phải sau ngày check-in!");
                 return;
@@ -290,8 +319,8 @@ public class ReservationPanel extends BasePanel {
             refreshTable();
             clearForm();
             
-        } catch(DateTimeParseException ex) {
-            UIHelper.showError(this, "Ngày không hợp lệ! Định dạng: dd/MM/yyyy");
+        } catch(Exception ex) {
+            UIHelper.showError(this, "Có lỗi xảy ra: " + ex.getMessage());
         }
     }
 
@@ -328,11 +357,10 @@ public class ReservationPanel extends BasePanel {
 
     @Override
     public void clearForm() {
-        if(cbGuest.getItemCount() > 0) cbGuest.setSelectedIndex(0);
-        if(cbRoom.getItemCount() > 0) cbRoom.setSelectedIndex(0);
-        txtCheckIn.setText(LocalDate.now().format(DATE_FMT));
-        txtCheckOut.setText(LocalDate.now().plusDays(1).format(DATE_FMT));
-        lblTotal.setText("$0");
-        calcPrice();
+        if(cbGuest.getItemCount() > 0) cbGuest.setSelectedIndex(-1);
+        if(cbRoom.getItemCount() > 0) cbRoom.setSelectedIndex(-1);
+        dpCheckIn.clear();
+        dpCheckOut.clear();
+        lblTotal.setText("0");
     }
 }

@@ -31,11 +31,11 @@ public class BillingPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
         
-        JLabel titleLbl = new JLabel("Thanh toán");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.billing"));
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Thanh toán hóa đơn cho khách hàng");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.billing"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -58,7 +58,16 @@ public class BillingPanel extends BasePanel {
         leftPanel.setBackground(UIConstants.COLOR_CARD);
         leftPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        String[] cols = {"Mã Đặt", "Khách hàng", "Phòng", "Check-in", "Check-out", "Số đêm", "Tổng", "Trạng thái"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.res_id"),
+            com.hotel.util.LangManager.getString("lbl.guest"),
+            com.hotel.util.LangManager.getString("lbl.room"),
+            com.hotel.util.LangManager.getString("lbl.checkin"),
+            com.hotel.util.LangManager.getString("lbl.checkout"),
+            "Số đêm",
+            com.hotel.util.LangManager.getString("lbl.total_amount"),
+            com.hotel.util.LangManager.getString("lbl.status")
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -98,7 +107,7 @@ public class BillingPanel extends BasePanel {
         panel.setBackground(UIConstants.COLOR_CARD);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLbl = new JLabel("LẬP HÓA ĐƠN");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.billing").toUpperCase());
         titleLbl.setFont(UIConstants.FONT_SUBTITLE);
         titleLbl.setForeground(Color.WHITE);
         titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -118,7 +127,7 @@ public class BillingPanel extends BasePanel {
         cbPayMethod.setBackground(UIConstants.COLOR_BG_DARK);
         cbPayMethod.addActionListener(e -> populateBillDetails());
 
-        addVGroup(topForm, "Chọn mã đặt phòng", cbReservation);
+        addVGroup(topForm, com.hotel.util.LangManager.getString("lbl.res_id"), cbReservation);
         centerPanel.add(topForm, BorderLayout.NORTH);
 
         txaBillDetails = new JTextArea();
@@ -131,7 +140,7 @@ public class BillingPanel extends BasePanel {
         
         JPanel botForm = new JPanel(new GridLayout(0, 1, 0, 10));
         botForm.setOpaque(false);
-        addVGroup(botForm, "Phương thức thanh toán", cbPayMethod);
+        addVGroup(botForm, com.hotel.util.LangManager.getString("lbl.pay_method"), cbPayMethod);
         centerPanel.add(botForm, BorderLayout.SOUTH);
 
         panel.add(centerPanel, BorderLayout.CENTER);
@@ -140,20 +149,44 @@ public class BillingPanel extends BasePanel {
         btnPanel.setOpaque(false);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        btnGenerateBill = new JButton("In Hóa đơn");
+        btnGenerateBill = new JButton(com.hotel.util.LangManager.getString("btn.print"));
         btnGenerateBill.setBackground(UIConstants.COLOR_SUCCESS);
         btnGenerateBill.setForeground(Color.WHITE);
         btnGenerateBill.setFont(UIConstants.FONT_BODY_BOLD);
         btnGenerateBill.setFocusable(false);
         
-        btnClear = new JButton("Làm mới");
+        btnClear = new JButton(com.hotel.util.LangManager.getString("btn.clear"));
         btnClear.setBackground(UIConstants.COLOR_BG_DARK);
         btnClear.setForeground(Color.WHITE);
         btnClear.setFont(UIConstants.FONT_BODY);
         btnClear.setFocusable(false);
 
         btnGenerateBill.addActionListener(e -> {
-            UIHelper.showInfo(this, "Đã in hóa đơn thành công!");
+            String billContent = txaBillDetails.getText();
+            if (billContent == null || billContent.trim().isEmpty()) {
+                UIHelper.showError(this, "Không có dữ liệu hóa đơn để in!");
+                return;
+            }
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Lưu Hóa Đơn");
+            
+            Object selected = cbReservation.getSelectedItem();
+            String defaultFileName = "HoaDon.txt";
+            if (selected instanceof Reservation) {
+                defaultFileName = "HoaDon_" + ((Reservation)selected).getReservationId() + ".txt";
+            }
+            fileChooser.setSelectedFile(new java.io.File(defaultFileName));
+            
+            int userSelection = fileChooser.showSaveDialog(this);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                try (java.io.FileWriter fw = new java.io.FileWriter(fileToSave)) {
+                    fw.write(billContent);
+                    UIHelper.showInfo(this, "Đã in hóa đơn thành công ra tệp:\n" + fileToSave.getName());
+                } catch (Exception ex) {
+                    UIHelper.showError(this, "Lỗi khi lưu tệp: " + ex.getMessage());
+                }
+            }
         });
         btnClear.addActionListener(e -> clearForm());
 
@@ -189,19 +222,19 @@ public class BillingPanel extends BasePanel {
         sb.append("==============================\n");
         sb.append("      GRAND AZURE HOTEL\n");
         sb.append("==============================\n");
-        sb.append("HÓA ĐƠN THANH TOÁN\n\n");
-        sb.append("Mã Đặt: ").append(r.getReservationId()).append("\n");
-        sb.append("Khách: ").append(r.getGuest().getName()).append("\n");
-        sb.append("Phòng: ").append(r.getRoom().getRoomId()).append(" (").append(r.getRoom().getRoomType()).append(")\n");
-        sb.append("Ngày In: ").append(r.getCheckInDate().format(DATE_FMT)).append("\n");
-        sb.append("Ngày Out: ").append(r.getCheckOutDate().format(DATE_FMT)).append("\n");
-        sb.append("Số đêm: ").append(r.getNumberOfNights()).append("\n");
-        sb.append("Giá/đêm: $").append((int)r.getRoom().calculatePricePerNight()).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("menu.billing").toUpperCase()).append("\n\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.res_id")).append(": ").append(r.getReservationId()).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.guest")).append(": ").append(r.getGuest().getName()).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.room")).append(": ").append(r.getRoom().getRoomId()).append(" (").append(r.getRoom().getRoomType()).append(")\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.checkin")).append(": ").append(r.getCheckInDate().format(DATE_FMT)).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.checkout")).append(": ").append(r.getCheckOutDate().format(DATE_FMT)).append("\n");
+        sb.append("Nights: ").append(r.getNumberOfNights()).append("\n");
+        sb.append("Price/Night: ").append(com.hotel.util.LangManager.formatCurrency(r.getRoom().calculatePricePerNight())).append("\n");
         sb.append("------------------------------\n");
-        sb.append("TỔNG CỘNG: $").append((int)r.getTotalAmount()).append("\n");
-        sb.append("Phương thức: ").append(payMethod).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.total_amount").toUpperCase()).append(": ").append(com.hotel.util.LangManager.formatCurrency(r.getTotalAmount())).append("\n");
+        sb.append(com.hotel.util.LangManager.getString("lbl.pay_method")).append(": ").append(payMethod).append("\n");
         sb.append("==============================\n");
-        sb.append("      Xin cảm ơn quý khách!\n");
+        sb.append("      Thank you!\n");
         
         txaBillDetails.setText(sb.toString());
     }
@@ -220,7 +253,7 @@ public class BillingPanel extends BasePanel {
                 res.getCheckInDate().format(DATE_FMT),
                 res.getCheckOutDate().format(DATE_FMT),
                 res.getNumberOfNights(),
-                "$" + (int)res.getTotalAmount(),
+                com.hotel.util.LangManager.formatCurrency(res.getTotalAmount()),
                 res.getStatus().name()
             });
             cbReservation.addItem(res);

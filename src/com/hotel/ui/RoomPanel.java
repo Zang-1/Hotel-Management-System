@@ -34,11 +34,11 @@ public class RoomPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
         
-        JLabel titleLbl = new JLabel("Quản lý Phòng");
-        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.rooms"));
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Thêm, sửa, xóa và tìm kiếm phòng khách sạn");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.room"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -76,7 +76,13 @@ public class RoomPanel extends BasePanel {
         leftPanel.add(searchBox, BorderLayout.NORTH);
 
         // Table
-        String[] cols = {"MÃ PHÒNG", "LOẠI PHÒNG", "GIÁ/ĐÊM", "TRẠNG THÁI", "THAO TÁC"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.room_id").replace(" *", "").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.room_type").toUpperCase(),
+            "GIÁ/ĐÊM",
+            com.hotel.util.LangManager.getString("dashboard.room_status").toUpperCase(),
+            com.hotel.util.LangManager.getString("lbl.action").toUpperCase()
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return c == 4; } // Only Thao tác is editable for button clicks
         };
@@ -119,7 +125,7 @@ public class RoomPanel extends BasePanel {
                 lbl.setOpaque(true);
                 lbl.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
                 
-                if ("Trống".equals(v)) {
+                if (com.hotel.util.LangManager.getString("status.empty").equals(v)) {
                     lbl.setBackground(new Color(20, 60, 40));
                     lbl.setForeground(UIConstants.COLOR_SUCCESS);
                 } else {
@@ -147,9 +153,13 @@ public class RoomPanel extends BasePanel {
             inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
             inner.setOpaque(false);
             
-            JButton bEdit = UIHelper.createActionButton("Sửa", UIConstants.COLOR_ACCENT);
+            JButton bEdit = UIHelper.createActionButton(com.hotel.util.LangManager.getString("btn.edit"), UIConstants.COLOR_ACCENT);
             JButton bDel = UIHelper.createActionButton("Xóa", UIConstants.COLOR_DANGER);
             
+            bEdit.addActionListener(e -> {
+                int rIdx = table.convertRowIndexToModel(row);
+                editRoomMode(tableModel.getValueAt(rIdx, 0).toString());
+            });
             bEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
             bDel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
@@ -161,10 +171,6 @@ public class RoomPanel extends BasePanel {
             panel.setOpaque(false);
             panel.add(inner);
             
-            bEdit.addActionListener(e -> {
-                String id = (String) table.getValueAt(row, 0);
-                editRoomMode(id);
-            });
             bDel.addActionListener(e -> {
                 String id = (String) table.getValueAt(row, 0);
                 if (UIHelper.showConfirm(this, "Xóa phòng " + id + "?")) {
@@ -208,15 +214,20 @@ public class RoomPanel extends BasePanel {
         txtRoomId = UIHelper.createTextField("");
         txtRoomId.setBackground(UIConstants.COLOR_BG_DARK);
         
-        cbRoomType = UIHelper.createComboBox(new String[]{"Standard — $50/đêm", "Deluxe — $90/đêm", "Suite — $150/đêm"});
-        cbRoomType.setBackground(UIConstants.COLOR_BG_DARK);
+        cbRoomType = new JComboBox<>(new String[]{
+            "Standard — " + com.hotel.util.LangManager.formatCurrency(500000.0) + "/đêm",
+            "Deluxe — " + com.hotel.util.LangManager.formatCurrency(800000.0) + "/đêm",
+            "Suite — " + com.hotel.util.LangManager.formatCurrency(1500000.0) + "/đêm"
+        });cbRoomType.setBackground(UIConstants.COLOR_BG_DARK);
         
-        cbAvailable = UIHelper.createComboBox(new String[]{"Trống", "Có khách"});
-        cbAvailable.setBackground(UIConstants.COLOR_BG_DARK);
+        cbAvailable = new JComboBox<>(new String[]{
+            com.hotel.util.LangManager.getString("status.empty"),
+            com.hotel.util.LangManager.getString("status.occupied")
+        });cbAvailable.setBackground(UIConstants.COLOR_BG_DARK);
 
-        addVGroup(form, "Mã phòng *", txtRoomId);
-        addVGroup(form, "Loại phòng", cbRoomType);
-        addVGroup(form, "Trạng thái", cbAvailable);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.room_id"), txtRoomId);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.room_type"), cbRoomType);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.status"), cbAvailable);
 
         panel.add(form, BorderLayout.CENTER);
 
@@ -225,13 +236,13 @@ public class RoomPanel extends BasePanel {
         btnPanel.setOpaque(false);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        btnAdd = new JButton("Thêm phòng");
+        btnAdd = new JButton(com.hotel.util.LangManager.getString("btn.add"));
         btnAdd.setBackground(UIConstants.COLOR_GOLD);
         btnAdd.setForeground(Color.BLACK);
         btnAdd.setFont(UIConstants.FONT_BODY_BOLD);
         btnAdd.setFocusable(false);
         
-        btnClear = new JButton("Xóa form");
+        btnClear = new JButton(com.hotel.util.LangManager.getString("btn.clear"));
         btnClear.setBackground(UIConstants.COLOR_BG_DARK);
         btnClear.setForeground(Color.WHITE);
         btnClear.setFont(UIConstants.FONT_BODY);
@@ -298,7 +309,7 @@ public class RoomPanel extends BasePanel {
             cbAvailable.setSelectedIndex(r.isAvailable() ? 0 : 1);
             
             // Switch button to Edit
-            btnAdd.setText("Lưu sửa");
+            btnAdd.setText(com.hotel.util.LangManager.getString("btn.save"));
             for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
                 btnAdd.removeActionListener(al);
             }
@@ -323,8 +334,8 @@ public class RoomPanel extends BasePanel {
                 tableModel.addRow(new Object[]{
                     r.getRoomId(),
                     r.getRoomType(),
-                    "$" + (int)r.calculatePricePerNight(),
-                    r.isAvailable() ? "Trống" : "Có khách",
+                    com.hotel.util.LangManager.formatCurrency(r.calculatePricePerNight()),
+                    r.isAvailable() ? com.hotel.util.LangManager.getString("status.empty") : com.hotel.util.LangManager.getString("status.occupied"),
                     "" // Button column
                 });
             }
@@ -338,7 +349,7 @@ public class RoomPanel extends BasePanel {
         cbRoomType.setSelectedIndex(0);
         cbAvailable.setSelectedIndex(0);
         
-        btnAdd.setText("Thêm phòng");
+        btnAdd.setText(com.hotel.util.LangManager.getString("btn.add"));
         for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
             btnAdd.removeActionListener(al);
         }

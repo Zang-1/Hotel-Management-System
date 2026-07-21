@@ -111,15 +111,30 @@ public class UIHelper {
     }
 
     public static void applyCalendarDarkTheme(DatePickerSettings settings) {
+        settings.setColor(DateArea.BackgroundOverallCalendarPanel, UIConstants.COLOR_CARD);
+        
+        settings.setColor(DateArea.BackgroundMonthAndYearMenuLabels, UIConstants.COLOR_CARD);
+        settings.setColor(DateArea.TextMonthAndYearMenuLabels, Color.WHITE);
+        
         settings.setColor(DateArea.CalendarBackgroundNormalDates, UIConstants.COLOR_BG_DARK);
         settings.setColor(DateArea.CalendarTextNormalDates, UIConstants.COLOR_TEXT_PRIMARY);
+        
+        // settings.setColor(DateArea.CalendarBackgroundWeekdays, UIConstants.COLOR_CARD);
+        // settings.setColor(DateArea.CalendarTextWeekdays, UIConstants.COLOR_TEXT_MUTED);
+        
         settings.setColor(DateArea.BackgroundMonthAndYearNavigationButtons, UIConstants.COLOR_CARD);
-        settings.setColor(DateArea.TextMonthAndYearNavigationButtons, UIConstants.COLOR_TEXT_PRIMARY);
-        settings.setColor(DateArea.BackgroundTodayLabel, UIConstants.COLOR_BG_DARK);
+        settings.setColor(DateArea.TextMonthAndYearNavigationButtons, Color.WHITE);
+        
+        settings.setColor(DateArea.BackgroundTopLeftLabelAboveWeekNumbers, UIConstants.COLOR_CARD);
+        
+        settings.setColor(DateArea.BackgroundTodayLabel, UIConstants.COLOR_CARD);
         settings.setColor(DateArea.TextTodayLabel, UIConstants.COLOR_ACCENT);
-        settings.setColor(DateArea.BackgroundClearLabel, UIConstants.COLOR_BG_DARK);
+        
+        settings.setColor(DateArea.BackgroundClearLabel, UIConstants.COLOR_CARD);
         settings.setColor(DateArea.TextClearLabel, UIConstants.COLOR_DANGER);
+        
         settings.setColor(DateArea.CalendarBackgroundSelectedDate, UIConstants.COLOR_ACCENT);
+        // settings.setColor(DateArea.CalendarTextSelectedDate, Color.WHITE);
     }
 
     public static JPanel createBadge(String text, Color bg) {

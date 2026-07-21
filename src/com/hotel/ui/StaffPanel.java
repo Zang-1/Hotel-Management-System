@@ -29,11 +29,11 @@ public class StaffPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
         
-        JLabel titleLbl = new JLabel("Nhân viên");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.staff"));
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Quản lý nhân sự và ca làm việc");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.staff"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -68,7 +68,15 @@ public class StaffPanel extends BasePanel {
 
         leftPanel.add(searchBox, BorderLayout.NORTH);
 
-        String[] cols = {"Mã NV", "Họ tên", "Chức vụ", "Điện thoại", "Lương", "Ca làm", "Thao tác"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.staff_id").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.name").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.role"),
+            com.hotel.util.LangManager.getString("lbl.phone").replace(" *", ""),
+            com.hotel.util.LangManager.getString("lbl.salary"),
+            com.hotel.util.LangManager.getString("lbl.shift"),
+            com.hotel.util.LangManager.getString("lbl.action")
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return c == 6; }
         };
@@ -94,8 +102,8 @@ public class StaffPanel extends BasePanel {
         TableActionCell actionCell = new TableActionCell(row -> {
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
             panel.setOpaque(false);
-            JButton bEdit = UIHelper.createActionButton("Sửa", UIConstants.COLOR_ACCENT);
-            JButton bDel = UIHelper.createActionButton("Xóa", UIConstants.COLOR_DANGER);
+            JButton bEdit = UIHelper.createActionButton(com.hotel.util.LangManager.getString("btn.edit"), UIConstants.COLOR_ACCENT);
+            JButton bDel = UIHelper.createActionButton(com.hotel.util.LangManager.getString("btn.delete"), UIConstants.COLOR_DANGER);
             
             bEdit.addActionListener(e -> {
                 String id = (String) table.getValueAt(row, 0);
@@ -103,7 +111,7 @@ public class StaffPanel extends BasePanel {
             });
             bDel.addActionListener(e -> {
                 String id = (String) table.getValueAt(row, 0);
-                if (UIHelper.showConfirm(this, "Xóa nhân viên " + id + "?")) {
+                if (UIHelper.showConfirm(this, "Delete staff " + id + "?")) {
                     staffManager.deleteStaff(id);
                     refreshTable();
                 }
@@ -138,7 +146,7 @@ public class StaffPanel extends BasePanel {
         panel.setBackground(UIConstants.COLOR_CARD);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLbl = new JLabel("THÊM NHÂN VIÊN");
+        JLabel titleLbl = new JLabel((com.hotel.util.LangManager.getString("btn.add") + " " + com.hotel.util.LangManager.getString("menu.staff")).toUpperCase());
         titleLbl.setFont(UIConstants.FONT_SUBTITLE);
         titleLbl.setForeground(Color.WHITE);
         titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -154,12 +162,12 @@ public class StaffPanel extends BasePanel {
         txtSalary = UIHelper.createTextField("");
         cbShift = UIHelper.createComboBox(new String[]{"Ca sáng (6:00 - 14:00)", "Ca chiều (14:00 - 22:00)", "Ca tối (22:00 - 6:00)"});
 
-        addVGroup(form, "Mã nhân viên *", txtStaffId);
-        addVGroup(form, "Họ tên *", txtName);
-        addVGroup(form, "Chức vụ", cbRole);
-        addVGroup(form, "Điện thoại", txtPhone);
-        addVGroup(form, "Lương (USD)", txtSalary);
-        addVGroup(form, "Ca làm việc", cbShift);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.staff_id"), txtStaffId);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.name"), txtName);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.role"), cbRole);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.phone").replace(" *", ""), txtPhone);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.salary") + " (VND)", txtSalary);
+        addVGroup(form, com.hotel.util.LangManager.getString("lbl.shift"), cbShift);
 
         panel.add(form, BorderLayout.CENTER);
 
@@ -167,13 +175,13 @@ public class StaffPanel extends BasePanel {
         btnPanel.setOpaque(false);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        btnAdd = new JButton("Thêm NV");
+        btnAdd = new JButton(com.hotel.util.LangManager.getString("btn.add"));
         btnAdd.setBackground(UIConstants.COLOR_GOLD);
         btnAdd.setForeground(Color.BLACK);
         btnAdd.setFont(UIConstants.FONT_BODY_BOLD);
         btnAdd.setFocusable(false);
         
-        btnClear = new JButton("Xóa form");
+        btnClear = new JButton(com.hotel.util.LangManager.getString("btn.clear"));
         btnClear.setBackground(UIConstants.COLOR_BG_DARK);
         btnClear.setForeground(Color.WHITE);
         btnClear.setFont(UIConstants.FONT_BODY);
@@ -209,11 +217,11 @@ public class StaffPanel extends BasePanel {
         String id = txtStaffId.getText().trim();
         String name = txtName.getText().trim();
         if (id.isEmpty() || name.isEmpty()) {
-            UIHelper.showError(this, "Vui lòng nhập Mã NV và Họ tên!");
+            UIHelper.showError(this, com.hotel.util.LangManager.getString("err.empty_fields"));
             return;
         }
         if (staffManager.findById(id) != null) {
-            UIHelper.showError(this, "Mã NV đã tồn tại!");
+            UIHelper.showError(this, com.hotel.util.LangManager.getString("err.id_exists"));
             return;
         }
         
@@ -225,7 +233,7 @@ public class StaffPanel extends BasePanel {
         
         Staff s = new Staff(id, name, r, txtPhone.getText(), sal, shift);
         staffManager.addStaff(s);
-        UIHelper.showInfo(this, "Đã thêm nhân viên!");
+        UIHelper.showInfo(this, com.hotel.util.LangManager.getString("msg.add_success"));
         refreshTable();
         clearForm();
     }
@@ -240,7 +248,7 @@ public class StaffPanel extends BasePanel {
             txtPhone.setText(s.getPhoneNumber());
             txtSalary.setText(String.valueOf(s.getSalary()));
             
-            btnAdd.setText("Lưu sửa");
+            btnAdd.setText(com.hotel.util.LangManager.getString("btn.save"));
             for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
                 btnAdd.removeActionListener(al);
             }
@@ -250,7 +258,7 @@ public class StaffPanel extends BasePanel {
                 s.setPhoneNumber(txtPhone.getText());
                 try { s.setSalary(Double.parseDouble(txtSalary.getText())); } catch(Exception ignored){}
                 staffManager.updateStaff(s);
-                UIHelper.showInfo(this, "Cập nhật thành công!");
+                UIHelper.showInfo(this, com.hotel.util.LangManager.getString("msg.update_success"));
                 refreshTable();
                 clearForm();
             });
@@ -280,7 +288,7 @@ public class StaffPanel extends BasePanel {
         txtSalary.setText("");
         cbRole.setSelectedIndex(0);
         
-        btnAdd.setText("Thêm NV");
+        btnAdd.setText(com.hotel.util.LangManager.getString("btn.add"));
         for(java.awt.event.ActionListener al : btnAdd.getActionListeners()) {
             btnAdd.removeActionListener(al);
         }

@@ -41,11 +41,11 @@ public class ReportPanel extends BasePanel {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(0, 0, 20, 0));
         
-        JLabel titleLbl = new JLabel("Báo cáo");
+        JLabel titleLbl = new JLabel(com.hotel.util.LangManager.getString("menu.reports"));
         titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
         titleLbl.setForeground(Color.WHITE);
         
-        JLabel subLbl = new JLabel("Thống kê tổng hợp hoạt động khách sạn");
+        JLabel subLbl = new JLabel(com.hotel.util.LangManager.getString("sub.report"));
         subLbl.setFont(UIConstants.FONT_BODY);
         subLbl.setForeground(UIConstants.COLOR_TEXT_MUTED);
         
@@ -73,7 +73,7 @@ public class ReportPanel extends BasePanel {
         // LEFT CARD: DOANH THU THEO LOẠI PHÒNG
         JPanel revCard = createCardPanel();
         revCard.setLayout(new BorderLayout(0, 15));
-        JLabel revTitle = new JLabel("DOANH THU THEO LOẠI PHÒNG");
+        JLabel revTitle = new JLabel(com.hotel.util.LangManager.getString("lbl.rev_by_room"));
         revTitle.setFont(UIConstants.FONT_SMALL_BOLD);
         revTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
         revCard.add(revTitle, BorderLayout.NORTH);
@@ -82,20 +82,20 @@ public class ReportPanel extends BasePanel {
         revContent.setOpaque(false);
         
         // Standard
-        lblStdRev = new JLabel("$0"); lblStdRev.setForeground(new Color(100, 210, 255)); lblStdRev.setFont(UIConstants.FONT_BODY_BOLD);
-        lblStdCount = new JLabel("0 phiếu"); lblStdCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblStdCount.setFont(UIConstants.FONT_SMALL);
+        lblStdRev = new JLabel("0"); lblStdRev.setForeground(new Color(100, 210, 255)); lblStdRev.setFont(UIConstants.FONT_BODY_BOLD);
+        lblStdCount = new JLabel("0 " + com.hotel.util.LangManager.getString("lbl.res_short")); lblStdCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblStdCount.setFont(UIConstants.FONT_SMALL);
         pbStandard = new CustomProgressBar(new Color(100, 210, 255));
         revContent.add(createRoomRevRow("Standard", lblStdRev, lblStdCount, pbStandard));
         
         // Deluxe
-        lblDeluxeRev = new JLabel("$0"); lblDeluxeRev.setForeground(UIConstants.COLOR_GOLD); lblDeluxeRev.setFont(UIConstants.FONT_BODY_BOLD);
-        lblDeluxeCount = new JLabel("0 phiếu"); lblDeluxeCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblDeluxeCount.setFont(UIConstants.FONT_SMALL);
+        lblDeluxeRev = new JLabel("0"); lblDeluxeRev.setForeground(UIConstants.COLOR_GOLD); lblDeluxeRev.setFont(UIConstants.FONT_BODY_BOLD);
+        lblDeluxeCount = new JLabel("0 " + com.hotel.util.LangManager.getString("lbl.res_short")); lblDeluxeCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblDeluxeCount.setFont(UIConstants.FONT_SMALL);
         pbDeluxe = new CustomProgressBar(UIConstants.COLOR_GOLD);
         revContent.add(createRoomRevRow("Deluxe", lblDeluxeRev, lblDeluxeCount, pbDeluxe));
         
         // Suite
-        lblSuiteRev = new JLabel("$0"); lblSuiteRev.setForeground(new Color(191, 90, 242)); lblSuiteRev.setFont(UIConstants.FONT_BODY_BOLD);
-        lblSuiteCount = new JLabel("0 phiếu"); lblSuiteCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblSuiteCount.setFont(UIConstants.FONT_SMALL);
+        lblSuiteRev = new JLabel("0"); lblSuiteRev.setForeground(new Color(191, 90, 242)); lblSuiteRev.setFont(UIConstants.FONT_BODY_BOLD);
+        lblSuiteCount = new JLabel("0 " + com.hotel.util.LangManager.getString("lbl.res_short")); lblSuiteCount.setForeground(UIConstants.COLOR_TEXT_MUTED); lblSuiteCount.setFont(UIConstants.FONT_SMALL);
         pbSuite = new CustomProgressBar(new Color(191, 90, 242));
         revContent.add(createRoomRevRow("Suite", lblSuiteRev, lblSuiteCount, pbSuite));
         
@@ -105,7 +105,7 @@ public class ReportPanel extends BasePanel {
         // RIGHT CARD: PHÂN BỔ TRẠNG THÁI
         JPanel statusCard = createCardPanel();
         statusCard.setLayout(new BorderLayout(0, 15));
-        JLabel statusTitle = new JLabel("PHÂN BỔ TRẠNG THÁI");
+        JLabel statusTitle = new JLabel(com.hotel.util.LangManager.getString("lbl.status_dist"));
         statusTitle.setFont(UIConstants.FONT_SMALL_BOLD);
         statusTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
         statusCard.add(statusTitle, BorderLayout.NORTH);
@@ -119,10 +119,10 @@ public class ReportPanel extends BasePanel {
         lblCheckedOutCount = new JLabel("0"); lblCheckedOutCount.setForeground(Color.WHITE); lblCheckedOutCount.setFont(UIConstants.FONT_BODY_BOLD);
         lblCancelledCount = new JLabel("0"); lblCancelledCount.setForeground(Color.WHITE); lblCancelledCount.setFont(UIConstants.FONT_BODY_BOLD);
         
-        statusContent.add(createStatusRow("Chờ nhận", new Color(255, 179, 71), lblPendingCount));
-        statusContent.add(createStatusRow("Đã nhận", UIConstants.COLOR_SUCCESS, lblCheckedInCount));
-        statusContent.add(createStatusRow("Đã trả", new Color(100, 210, 255), lblCheckedOutCount));
-        statusContent.add(createStatusRow("Đã hủy", UIConstants.COLOR_DANGER, lblCancelledCount));
+        statusContent.add(createStatusRow(com.hotel.util.LangManager.getString("status.pending"), new Color(255, 179, 71), lblPendingCount));
+        statusContent.add(createStatusRow(com.hotel.util.LangManager.getString("status.checked_in"), UIConstants.COLOR_SUCCESS, lblCheckedInCount));
+        statusContent.add(createStatusRow(com.hotel.util.LangManager.getString("status.checked_out"), new Color(100, 210, 255), lblCheckedOutCount));
+        statusContent.add(createStatusRow(com.hotel.util.LangManager.getString("status.cancelled"), UIConstants.COLOR_DANGER, lblCancelledCount));
         
         statusCard.add(statusContent, BorderLayout.CENTER);
         row1.add(statusCard);
@@ -136,15 +136,15 @@ public class ReportPanel extends BasePanel {
         row2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
         row2.setPreferredSize(new Dimension(0, 120));
         
-        lblTotalRev = new JLabel("$0");
+        lblTotalRev = new JLabel("0");
         lblOccRate = new JLabel("0%");
         lblGuests = new JLabel("0");
         lblTotalBookings = new JLabel("0");
         
-        row2.add(buildStatCard("TỔNG DOANH THU", lblTotalRev, UIConstants.COLOR_SUCCESS));
-        row2.add(buildStatCard("TỈ LỆ LẤP ĐẦY", lblOccRate, UIConstants.COLOR_GOLD));
-        row2.add(buildStatCard("TỔNG KHÁCH HÀNG", lblGuests, new Color(100, 210, 255)));
-        row2.add(buildStatCard("TỔNG PHIẾU ĐẶT", lblTotalBookings, new Color(191, 90, 242)));
+        row2.add(buildStatCard(com.hotel.util.LangManager.getString("lbl.total_rev"), lblTotalRev, UIConstants.COLOR_SUCCESS));
+        row2.add(buildStatCard(com.hotel.util.LangManager.getString("lbl.occ_rate"), lblOccRate, UIConstants.COLOR_GOLD));
+        row2.add(buildStatCard(com.hotel.util.LangManager.getString("lbl.total_guests_upper"), lblGuests, new Color(100, 210, 255)));
+        row2.add(buildStatCard(com.hotel.util.LangManager.getString("lbl.total_res"), lblTotalBookings, new Color(191, 90, 242)));
         
         content.add(row2);
         content.add(Box.createVerticalStrut(20));
@@ -152,12 +152,20 @@ public class ReportPanel extends BasePanel {
         // --- ROW 3: Table ---
         JPanel row3 = createCardPanel();
         row3.setLayout(new BorderLayout(0, 10));
-        JLabel tableTitle = new JLabel("CHI TIẾT TỪNG PHÒNG");
+        JLabel tableTitle = new JLabel(com.hotel.util.LangManager.getString("lbl.room_details"));
         tableTitle.setFont(UIConstants.FONT_SMALL_BOLD);
         tableTitle.setForeground(UIConstants.COLOR_TEXT_MUTED);
         row3.add(tableTitle, BorderLayout.NORTH);
         
-        String[] cols = {"Phòng", "Loại", "Giá/đêm", "Số phiếu", "Tổng đêm", "Doanh thu", "Trạng thái"};
+        String[] cols = {
+            com.hotel.util.LangManager.getString("lbl.room"),
+            com.hotel.util.LangManager.getString("lbl.room_type"),
+            "Giá/đêm",
+            com.hotel.util.LangManager.getString("lbl.total_res"),
+            com.hotel.util.LangManager.getString("lbl.nights_total"),
+            com.hotel.util.LangManager.getString("dashboard.revenue"),
+            com.hotel.util.LangManager.getString("lbl.status")
+        };
         tableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -177,11 +185,11 @@ public class ReportPanel extends BasePanel {
                 lbl.setOpaque(false);
                 lbl.setBorder(new EmptyBorder(4, 8, 4, 8));
                 
-                if ("Trống".equals(v)) {
-                    lbl.setForeground(UIConstants.COLOR_SUCCESS);
-                } else {
-                    lbl.setForeground(UIConstants.COLOR_DANGER);
-                }
+                if (com.hotel.util.LangManager.getString("status.empty").equals(v)) {
+            lbl.setForeground(UIConstants.COLOR_SUCCESS);
+        } else {
+            lbl.setForeground(UIConstants.COLOR_DANGER);
+        }
                 
                 p.add(lbl);
                 
@@ -342,7 +350,7 @@ public class ReportPanel extends BasePanel {
             }
         }
         
-        lblTotalRev.setText("$" + String.format("%,.0f", totalRev));
+        lblTotalRev.setText(com.hotel.util.LangManager.formatCurrency(totalRev));
         
         long occ = roomManager.countOccupied();
         int rate = rooms.isEmpty() ? 0 : (int)(occ * 100.0 / rooms.size());
@@ -358,12 +366,12 @@ public class ReportPanel extends BasePanel {
         lblCancelledCount.setText(String.valueOf(cancelled));
         
         // Rev by room type
-        lblStdRev.setText("$" + (int)standardRev);
-        lblStdCount.setText(standardCnt + " phiếu");
-        lblDeluxeRev.setText("$" + (int)deluxeRev);
-        lblDeluxeCount.setText(deluxeCnt + " phiếu");
-        lblSuiteRev.setText("$" + (int)suiteRev);
-        lblSuiteCount.setText(suiteCnt + " phiếu");
+        lblStdRev.setText(com.hotel.util.LangManager.formatCurrency(standardRev));
+        lblStdCount.setText(standardCnt + " " + com.hotel.util.LangManager.getString("lbl.res_short"));
+        lblDeluxeRev.setText(com.hotel.util.LangManager.formatCurrency(deluxeRev));
+        lblDeluxeCount.setText(deluxeCnt + " " + com.hotel.util.LangManager.getString("lbl.res_short"));
+        lblSuiteRev.setText(com.hotel.util.LangManager.formatCurrency(suiteRev));
+        lblSuiteCount.setText(suiteCnt + " " + com.hotel.util.LangManager.getString("lbl.res_short"));
         
         double maxRev = Math.max(standardRev, Math.max(deluxeRev, suiteRev));
         if (maxRev == 0) maxRev = 1; // avoid / 0
@@ -375,14 +383,14 @@ public class ReportPanel extends BasePanel {
         tableModel.setRowCount(0);
         for(Room r : rooms) {
             RoomStats st = roomStats.get(r.getRoomId());
-            String status = r.isAvailable() ? "Trống" : "Có khách";
+            String status = r.isAvailable() ? com.hotel.util.LangManager.getString("status.empty") : com.hotel.util.LangManager.getString("status.occupied");
             tableModel.addRow(new Object[]{
                 r.getRoomId(),
                 r.getRoomType(),
-                "$" + (int)r.calculatePricePerNight(),
+                com.hotel.util.LangManager.formatCurrency(r.calculatePricePerNight()),
                 st.bookings,
                 st.nights,
-                "$" + (int)st.revenue,
+                com.hotel.util.LangManager.formatCurrency(st.revenue),
                 status
             });
         }

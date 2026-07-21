@@ -22,14 +22,14 @@ public class RoomManager {
     }
 
     private void seedDefaultRooms() {
-        rooms.add(new StandardRoom("101", 50.0, true, 1));
-        rooms.add(new StandardRoom("102", 50.0, true, 1));
-        rooms.add(new StandardRoom("103", 60.0, true, 1));
-        rooms.add(new DeluxeRoom("201", 80.0, true, 2));
-        rooms.add(new DeluxeRoom("202", 80.0, true, 2));
-        rooms.add(new DeluxeRoom("203", 90.0, false, 2));
-        rooms.add(new SuiteRoom("301", 120.0, true, 3));
-        rooms.add(new SuiteRoom("302", 150.0, false, 3));
+        rooms.add(new StandardRoom("101", 500000.0, true, 1));
+        rooms.add(new StandardRoom("102", 500000.0, true, 1));
+        rooms.add(new StandardRoom("103", 600000.0, true, 1));
+        rooms.add(new DeluxeRoom("201", 800000.0, true, 2));
+        rooms.add(new DeluxeRoom("202", 800000.0, true, 2));
+        rooms.add(new DeluxeRoom("203", 900000.0, false, 2));
+        rooms.add(new SuiteRoom("301", 1500000.0, true, 3));
+        rooms.add(new SuiteRoom("302", 2000000.0, false, 3));
         save();
     }
 
